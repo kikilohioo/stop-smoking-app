@@ -38,7 +38,6 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="+not-found" />
         </Stack>
       </SQLiteProvider>
       <StatusBar style="auto" />
