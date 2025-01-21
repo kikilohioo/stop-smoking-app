@@ -7,7 +7,9 @@ module.exports = {
       "error",
       {
         endOfLine: "auto",
+        trailingComma: "none",
       },
     ],
+    "comma-dangle": ["error", "never"],
   },
 };
