@@ -1,4 +1,4 @@
-import { AntDesign } from "@expo/vector-icons";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 type IconProp = {
   size?: number;
@@ -7,4 +7,12 @@ type IconProp = {
 
 export const HomeIcon = (props: IconProp) => {
   return <AntDesign name="home" size={24} color="black" {...props} />;
+};
+
+export const ListIcon = (props: IconProp) => {
+  return <AntDesign name="bars" size={24} color="black" {...props} />;
+};
+
+export const ConfigIcon = (props: IconProp) => {
+  return <AntDesign name="setting" size={24} color="black" {...props} />;
 };

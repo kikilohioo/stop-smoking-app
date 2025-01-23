@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { HomeIcon } from "../../components/Icons";
+import { ConfigIcon, HomeIcon, ListIcon } from "../../components/Icons";
 
 export default function TabsLayout() {
   return (
@@ -11,8 +11,22 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "HOME",
-          tabBarIcon: ({ color }) => <HomeIcon color={color} size={15} />,
+          title: "Resumen",
+          tabBarIcon: ({ color }) => <HomeIcon color={color} size={20} />,
+        }}
+      />
+      <Tabs.Screen
+        name="list"
+        options={{
+          title: "Lista",
+          tabBarIcon: ({ color }) => <ListIcon color={color} size={20} />,
+        }}
+      />
+      <Tabs.Screen
+        name="config"
+        options={{
+          title: "Configuracion",
+          tabBarIcon: ({ color }) => <ConfigIcon color={color} size={20} />,
         }}
       />
       {/* Aqui agregar mas Tabs.Screen personalizadas */}
