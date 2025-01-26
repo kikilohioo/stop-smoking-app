@@ -1,16 +1,36 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { Screen } from "../Screen";
+import Table from "../tables/Motives";
+import { useCallback, useState } from "react";
+import { useSQLiteContext } from "expo-sqlite";
+import { useFocusEffect } from "expo-router";
 
 export function MotivePage() {
+  const [data, setData] = useState<{ id: number; name: string }[]>([]);
+  const database = useSQLiteContext();
+  useFocusEffect(
+    useCallback(() => {
+      loadData(); // Fetch data when the screen is focused
+    }, []),
+  );
+  const loadData = async () => {
+    const result = await database.getAllAsync<{
+      id: number;
+      name: string;
+    }>("SELECT * FROM motives");
+    setData(result);
+  };
+
   return (
     <Screen style={styles.screen}>
-      <Text>Motive screen</Text>
+      <Table data={data} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
+    width: "100%",
     alignItems: "center",
     alignContent: "center",
   },

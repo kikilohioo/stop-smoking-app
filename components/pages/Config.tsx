@@ -1,4 +1,10 @@
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Screen } from "../Screen";
 import LinkButton from "../common/LinkButton";
 
@@ -9,11 +15,11 @@ type LinkButtonData = {
 };
 
 const data: LinkButtonData[] = [
-  { id: "1", label: "Motivos", to: "/config/motive" },
-  { id: "2", label: "Alertas", to: "/config/alert" },
-  { id: "3", label: "Desencadenantes", to: "/config/trigger" },
-  { id: "4", label: "Lugares", to: "/config/place" },
-  { id: "4", label: "Personas", to: "/config/person" },
+  { id: "1", label: "Motivos", to: "/config/motives/" },
+  { id: "2", label: "Alertas", to: "/config/alerts/" },
+  { id: "3", label: "Desencadenantes", to: "/config/triggers/" },
+  { id: "4", label: "Lugares", to: "/config/places/" },
+  { id: "4", label: "Personas", to: "/config/persons/" },
 ];
 
 export function ConfigPage() {

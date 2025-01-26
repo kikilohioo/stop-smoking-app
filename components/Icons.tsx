@@ -1,8 +1,8 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
 
 type IconProp = {
-  size?: number;
-  color?: string;
+  size?: number
+  color?: string
 };
 
 export const HomeIcon = (props: IconProp) => {

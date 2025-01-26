@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import {
-    DimensionValue,
+  DimensionValue,
   StyleProp,
   StyleSheet,
   Text,

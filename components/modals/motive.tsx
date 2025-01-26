@@ -1,31 +1,65 @@
 import React, { useState } from "react";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  StyleSheet,
-  SafeAreaView,
-} from "react-native";
+import { View, Text, TextInput, StyleSheet, SafeAreaView } from "react-native";
+import { Button, Divider } from "react-native-paper";
+import { fireBrick, marianBlue } from "../../assets/palette";
+import Slider from "@react-native-community/slider";
 
 // Definición de los tipos para los datos del formulario
 type FormData = {
   name: string;
-  email: string;
+  spheres: {
+    social: number;
+    emotional: number;
+    conductual: number;
+    physiological: number;
+  };
 };
 
-function MyForm() {
+function MotiveModal() {
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>();
   const [submittedData, setSubmittedData] = useState<FormData | null>(null);
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [spheres, setSpheres] = useState<{
+    social: number;
+    emotional: number;
+    conductual: number;
+    physiological: number;
+  }>({
+    social: 0,
+    emotional: 0,
+    conductual: 0,
+    physiological: 0,
+  });
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
     console.log("Submitted Data:", data);
-    setSubmittedData(data);
+    // setSubmittedData(data);
+  };
+
+  const handleSpheresChange = (value: number, sphere: keyof typeof spheres) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId); // Limpiar cualquier retardo anterior
+    }
+
+    const id = setTimeout(() => {
+      // Calcular la suma de los valores de todas las esferas
+      const total = Object.values(spheres).reduce((acc, curr) => acc + curr, 0);
+      const diff = value - spheres[sphere]; // Diferencia entre el nuevo valor y el valor anterior
+
+      if (total + diff <= 100) {
+        setSpheres((prevSpheres) => ({
+          ...prevSpheres,
+          [sphere]: value,
+        }));
+      }
+    }, 300); // 300 ms de retardo
+
+    setTimeoutId(id);
   };
 
   return (
@@ -35,11 +69,11 @@ function MyForm() {
         <Controller
           control={control}
           name="name"
-          rules={{ required: "You must enter your name" }}
+          rules={{ required: "Debe ingresar un nombre" }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               style={styles.input}
-              placeholder="Your Name"
+              placeholder="Nombre del motivo"
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
@@ -50,41 +84,84 @@ function MyForm() {
           <Text style={styles.errorText}>{errors.name.message}</Text>
         )}
 
-        {/* Campo para el email */}
+        <Divider />
+        <Text style={styles.title}>Esferas</Text>
         <Controller
           control={control}
-          name="email"
-          rules={{
-            required: "You must enter your email",
-            pattern: {
-              value: /^\S+@\S+$/i,
-              message: "Enter a valid email address",
-            },
-          }}
+          name="spheres"
+          rules={{ required: "La suma de las esferas debe ser de 100%" }}
           render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              keyboardType="email-address"
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-            />
+            <>
+              {/* Barra de intensidad 1 */}
+              <Text>Social: {spheres.social}%</Text>
+              <Slider
+                value={spheres.social}
+                onValueChange={(value) => handleSpheresChange(value, "social")}
+                minimumValue={0}
+                maximumValue={100}
+                step={1}
+                style={styles.slider}
+              />
+
+              {/* Barra de intensidad 2 */}
+              <Text>Emocional: {spheres.emotional}%</Text>
+              <Slider
+                value={spheres.emotional}
+                onValueChange={(value) =>
+                  handleSpheresChange(value, "emotional")
+                }
+                minimumValue={0}
+                maximumValue={100}
+                step={1}
+                style={styles.slider}
+              />
+
+              {/* Barra de intensidad 2 */}
+              <Text>Conductual: {spheres.conductual}%</Text>
+              <Slider
+                value={spheres.conductual}
+                onValueChange={(value) =>
+                  handleSpheresChange(value, "conductual")
+                }
+                minimumValue={0}
+                maximumValue={100}
+                step={1}
+                style={styles.slider}
+              />
+
+              {/* Barra de intensidad 2 */}
+              <Text>Fisiologico: {spheres.physiological}%</Text>
+              <Slider
+                value={spheres.physiological}
+                onValueChange={(value) =>
+                  handleSpheresChange(value, "physiological")
+                }
+                minimumValue={0}
+                maximumValue={100}
+                step={1}
+                style={styles.slider}
+              />
+            </>
           )}
         />
-        {errors.email && (
-          <Text style={styles.errorText}>{errors.email.message}</Text>
+        {errors.spheres && (
+          <Text style={styles.errorText}>{errors.spheres.message}</Text>
         )}
 
         {/* Botón para enviar el formulario */}
-        <Button title="Submit" onPress={handleSubmit(onSubmit)} />
+        <Button
+          onPress={handleSubmit(onSubmit)}
+          textColor="white"
+          style={styles.button}
+        >
+          Crear nuevo motivo
+        </Button>
 
         {/* Mostrar los datos enviados */}
         {submittedData && (
           <View style={styles.submittedContainer}>
             <Text style={styles.submittedTitle}>Submitted Data:</Text>
             <Text>Name: {submittedData.name}</Text>
-            <Text>Email: {submittedData.email}</Text>
           </View>
         )}
       </View>
@@ -104,7 +181,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   errorText: {
-    color: "red",
+    color: fireBrick(60),
     marginBottom: 10,
   },
   submittedContainer: {
@@ -118,6 +195,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 5,
   },
+  slider: {
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 20,
+    paddingVertical: 10,
+  },
+  button: {
+    backgroundColor: marianBlue(50),
+  },
 });
 
-export default MyForm;
+export default MotiveModal;
