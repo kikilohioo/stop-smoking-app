@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { View, Text, TextInput, StyleSheet, SafeAreaView } from "react-native";
 import { Button, Divider } from "react-native-paper";
 import { fireBrick, marianBlue } from "../../assets/palette";
 import Slider from "@react-native-community/slider";
+import { useSQLiteContext } from "expo-sqlite";
+import { router } from "expo-router";
 
 // Definición de los tipos para los datos del formulario
 type FormData = {
@@ -21,7 +23,9 @@ function MotiveModal() {
     control,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<FormData>();
+  const database = useSQLiteContext();
   const [submittedData, setSubmittedData] = useState<FormData | null>(null);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const [spheres, setSpheres] = useState<{
@@ -36,28 +40,57 @@ function MotiveModal() {
     physiological: 0,
   });
 
-  const onSubmit: SubmitHandler<FormData> = (data) => {
-    console.log("Submitted Data:", data);
-    // setSubmittedData(data);
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
+    try {
+      await database.runAsync(
+        `INSERT INTO motives (name, social, emotional, conductual, physiological) 
+         VALUES (?, ?, ?, ?, ?);`,
+        [
+          data.name,
+          data.spheres.social,
+          data.spheres.emotional,
+          data.spheres.conductual,
+          data.spheres.physiological,
+        ]
+      );
+      reset();
+      router.back();
+    } catch (error) {
+      console.error("Error al insertar el registro:", error);
+    }
   };
 
-  const handleSpheresChange = (value: number, sphere: keyof typeof spheres) => {
+  const handleSpheresChange = (
+    value: number,
+    sphere: keyof typeof spheres,
+    onChange: (value: any) => void
+  ) => {
     if (timeoutId) {
       clearTimeout(timeoutId); // Limpiar cualquier retardo anterior
     }
 
     const id = setTimeout(() => {
-      // Calcular la suma de los valores de todas las esferas
-      const total = Object.values(spheres).reduce((acc, curr) => acc + curr, 0);
-      const diff = value - spheres[sphere]; // Diferencia entre el nuevo valor y el valor anterior
+      let auxSpheres = { ...spheres, [sphere]: 0 };
+      const auxTotal = Object.values(auxSpheres).reduce(
+        (acc, curr) => acc + curr,
+        0
+      );
 
-      if (total + diff <= 100) {
-        setSpheres((prevSpheres) => ({
-          ...prevSpheres,
+      if (auxTotal + value > 100) {
+        let allowedMaxValues = 100 - auxTotal;
+        auxSpheres = {
+          ...auxSpheres,
+          [sphere]: allowedMaxValues,
+        };
+      } else {
+        auxSpheres = {
+          ...auxSpheres,
           [sphere]: value,
-        }));
+        };
       }
-    }, 300); // 300 ms de retardo
+      setSpheres(auxSpheres);
+      onChange(auxSpheres);
+    }, 300);
 
     setTimeoutId(id);
   };
@@ -89,14 +122,20 @@ function MotiveModal() {
         <Controller
           control={control}
           name="spheres"
-          rules={{ required: "La suma de las esferas debe ser de 100%" }}
-          render={({ field: { onChange, onBlur, value } }) => (
+          rules={{
+            validate: (value) =>
+              Object.values(value).reduce((acc, curr) => acc + curr, 0) ===
+                100 || "La suma de las esferas debe ser igual a 100%",
+          }}
+          render={({ field: { onChange } }) => (
             <>
               {/* Barra de intensidad 1 */}
               <Text>Social: {spheres.social}%</Text>
               <Slider
                 value={spheres.social}
-                onValueChange={(value) => handleSpheresChange(value, "social")}
+                onValueChange={(value) => {
+                  handleSpheresChange(value, "social", onChange);
+                }}
                 minimumValue={0}
                 maximumValue={100}
                 step={1}
@@ -107,35 +146,35 @@ function MotiveModal() {
               <Text>Emocional: {spheres.emotional}%</Text>
               <Slider
                 value={spheres.emotional}
-                onValueChange={(value) =>
-                  handleSpheresChange(value, "emotional")
-                }
+                onValueChange={(value) => {
+                  handleSpheresChange(value, "emotional", onChange);
+                }}
                 minimumValue={0}
                 maximumValue={100}
                 step={1}
                 style={styles.slider}
               />
 
-              {/* Barra de intensidad 2 */}
+              {/* Barra de intensidad 3 */}
               <Text>Conductual: {spheres.conductual}%</Text>
               <Slider
                 value={spheres.conductual}
-                onValueChange={(value) =>
-                  handleSpheresChange(value, "conductual")
-                }
+                onValueChange={(value) => {
+                  handleSpheresChange(value, "conductual", onChange);
+                }}
                 minimumValue={0}
                 maximumValue={100}
                 step={1}
                 style={styles.slider}
               />
 
-              {/* Barra de intensidad 2 */}
-              <Text>Fisiologico: {spheres.physiological}%</Text>
+              {/* Barra de intensidad 4 */}
+              <Text>Fisiológico: {spheres.physiological}%</Text>
               <Slider
                 value={spheres.physiological}
-                onValueChange={(value) =>
-                  handleSpheresChange(value, "physiological")
-                }
+                onValueChange={(value) => {
+                  handleSpheresChange(value, "physiological", onChange);
+                }}
                 minimumValue={0}
                 maximumValue={100}
                 step={1}

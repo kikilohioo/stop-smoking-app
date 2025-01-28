@@ -29,7 +29,7 @@ export default function migrations() {
         name: "TEXT NOT NULL",
         social: "INTEGER",
         emotional: "INTEGER",
-        sconductualocial: "INTEGER",
+        conductual: "INTEGER",
         physiological: "INTEGER",
       },
       foreingKeys: [],
