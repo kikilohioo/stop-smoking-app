@@ -3,15 +3,15 @@ import { View, StyleSheet } from "react-native";
 import { FlatList } from "react-native";
 import { Text, Surface, IconButton } from "react-native-paper";
 import { fireBrick, fluorescentCyan } from "../../assets/palette";
-import { DBMotiveType } from "../Types";
+import { DBPersonType } from "../Types";
 import { router } from "expo-router";
 
-type MotivesTableProps = {
-  data: DBMotiveType[];
-  deleteMotive: (motive_id: number) => Promise<boolean>;
+type PersonsTableProps = {
+  data: DBPersonType[];
+  deletePerson: (motive_id: number) => Promise<boolean>;
 };
 
-const MotivesTable = ({ data, deleteMotive }: MotivesTableProps) => {
+const PersonsTable = ({ data, deletePerson }: PersonsTableProps) => {
   const renderHeader = () => (
     <Surface style={styles.header}>
       <Text style={[styles.cell, styles.headerText]}>Nombre</Text>
@@ -20,10 +20,10 @@ const MotivesTable = ({ data, deleteMotive }: MotivesTableProps) => {
   );
 
   const handleOnDelete = async (motive_id: number) => {
-    await deleteMotive(motive_id);
+    await deletePerson(motive_id);
   };
 
-  const renderRow = ({ item }: { item: MotivesTableProps["data"][0] }) => (
+  const renderRow = ({ item }: { item: PersonsTableProps["data"][0] }) => (
     <Surface style={styles.row}>
       <Text style={styles.cell}>{item.name}</Text>
       <View style={styles.actions}>
@@ -32,7 +32,7 @@ const MotivesTable = ({ data, deleteMotive }: MotivesTableProps) => {
           size={20}
           onPress={() =>
             router.push({
-              pathname: "/config/motives/modal",
+              pathname: "/config/Persons/modal",
               params: { motive_id: item.id },
             })
           }
@@ -111,4 +111,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MotivesTable;
+export default PersonsTable;

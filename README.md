@@ -1,6 +1,6 @@
 # 🚭 App para Dejar de Fumar
 
-Una aplicación móvil diseñada para acompañarte en el proceso de dejar de fumar. Basada en **React Native** (con **Expo**) y respaldada por **SQLite** para la gestión de datos, esta herramienta combina tecnología y enfoques interdisciplinarios de la Policlínica de Tabaquismo en Uruguay. 
+Una aplicación móvil diseñada para acompañarte en el proceso de dejar de fumar. Basada en **React Native** (con **Expo**) y respaldada por **SQLite** para la gestión de datos, esta herramienta combina tecnología y enfoques interdisciplinarios de la Policlínica de Tabaquismo en Uruguay.
 
 ## ✨ Características Principales
 
@@ -54,14 +54,20 @@ Estas son algunas características que planeamos incorporar en futuras versiones
 
 Esta aplicación no solo busca ayudarte en el proceso de dejar de fumar, sino también ser una herramienta valiosa para equipos interdisciplinarios como el de la Policlínica de Tabaquismo en Uruguay. La información recolectada puede contribuir al análisis y desarrollo de estrategias más efectivas para combatir el tabaquismo.
 
+## 📂 Modelo de la App
+
+Puedes ver el modelo de la app y los datos internos en el siguiente enlace: [Modelo de la App](https://drive.google.com/file/d/1A4U330Rbcw_QxApTVAqKfsKBB6NOhDOh/view?usp=sharing)
+
 ## 📝 Nota
 
 La app se encuentra en una versión inicial. Tu feedback es bienvenido para mejorarla y adaptarla a más usuarios.
 
 ## 📈 Contribuciones
 
-Si deseas colaborar con este proyecto, ya sea en el desarrollo, diseño, o proponiendo nuevas ideas, ¡eres más que bienvenido/a! Puedes abrir un [issue](https://github.com/) o enviar un pull request. 
+Si deseas colaborar con este proyecto, ya sea en el desarrollo, diseño, o proponiendo nuevas ideas, ¡eres más que bienvenido/a! Puedes abrir un [issue](https://github.com/) o enviar un pull request.
 
 ---
 
 **Juntos podemos vencer al tabaquismo, un cigarro menos a la vez.** 🚭
+
+Creado con ayuda de ChatGPT

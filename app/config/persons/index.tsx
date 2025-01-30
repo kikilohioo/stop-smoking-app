@@ -1,10 +1,10 @@
 import { router, Stack } from "expo-router";
-import { MotivePage } from "../../../components/pages/config/Motive";
+import { PersonPage } from "../../../components/pages/config/Person";
 import { IconButton } from "react-native-paper";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 
-export default function Motives() {
+export default function Persons() {
   return (
     <>
       <Stack.Screen
@@ -14,15 +14,15 @@ export default function Motives() {
               <IconButton
                 icon="plus"
                 size={20}
-                onPress={() => router.push("/config/motives/modal")}
+                onPress={() => router.push("/config/persons/modal")}
                 style={styles.iconButton}
               />
             </View>
           ),
-          headerTitle: "Motivos",
+          headerTitle: "Personas",
         }}
       />
-      <MotivePage />
+      <PersonPage />
     </>
   );
 }

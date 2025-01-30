@@ -5,8 +5,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Screen } from "../Screen";
-import LinkButton from "../common/LinkButton";
+import { Screen } from "../../Screen";
+import LinkButton from "../../common/LinkButton";
 
 type LinkButtonData = {
   id: string;

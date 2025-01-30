@@ -12,14 +12,14 @@ export default function migrations() {
         physiological: "INTEGER",
         trigger_id: "INTEGER NOT NULL",
         place_id: "INTEGER NOT NULL",
-        partner_id: "INTEGER NOT NULL",
+        person_id: "INTEGER NOT NULL",
         date_time: "TIMESTAMP DEFAULT now() NOT NULL",
       },
       foreingKeys: [
         "FOREIGN KEY (motive_id) REFERENCES motives(id) ON UPDATE no action ON DELETE no action",
         "FOREIGN KEY (trigger_id) REFERENCES triggers(id) ON UPDATE no action ON DELETE no action",
         "FOREIGN KEY (place_id) REFERENCES places(id) ON UPDATE no action ON DELETE no action",
-        "FOREIGN KEY (partner_id) REFERENCES partners(id) ON UPDATE no action ON DELETE no action",
+        "FOREIGN KEY (person_id) REFERENCES persons(id) ON UPDATE no action ON DELETE no action",
       ],
     },
     {
@@ -35,7 +35,7 @@ export default function migrations() {
       foreingKeys: [],
     },
     {
-      table: "partners",
+      table: "persons",
       attributes: {
         id: "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
         name: "TEXT NOT NULL",
