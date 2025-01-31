@@ -3,15 +3,15 @@ import { View, StyleSheet } from "react-native";
 import { FlatList } from "react-native";
 import { Text, Surface, IconButton } from "react-native-paper";
 import { fireBrick, fluorescentCyan } from "../../assets/palette";
-import { DBPersonType } from "../Types";
+import { DBPlaceType } from "../Types";
 import { router } from "expo-router";
 
-type PersonsTableProps = {
-  data: DBPersonType[];
-  deletePerson: (person_id: number) => Promise<boolean>;
+type PlacesTableProps = {
+  data: DBPlaceType[];
+  deletePlace: (place_id: number) => Promise<boolean>;
 };
 
-const PersonsTable = ({ data, deletePerson }: PersonsTableProps) => {
+const PlacesTable = ({ data, deletePlace }: PlacesTableProps) => {
   const renderHeader = () => (
     <Surface style={styles.header}>
       <Text style={[styles.cell, styles.headerText]}>Nombre</Text>
@@ -19,11 +19,11 @@ const PersonsTable = ({ data, deletePerson }: PersonsTableProps) => {
     </Surface>
   );
 
-  const handleOnDelete = async (person_id: number) => {
-    await deletePerson(person_id);
+  const handleOnDelete = async (place_id: number) => {
+    await deletePlace(place_id);
   };
 
-  const renderRow = ({ item }: { item: PersonsTableProps["data"][0] }) => (
+  const renderRow = ({ item }: { item: PlacesTableProps["data"][0] }) => (
     <Surface style={styles.row}>
       <Text style={styles.cell}>{item.name}</Text>
       <View style={styles.actions}>
@@ -32,8 +32,8 @@ const PersonsTable = ({ data, deletePerson }: PersonsTableProps) => {
           size={20}
           onPress={() =>
             router.push({
-              pathname: "/config/persons/modal",
-              params: { person_id: item.id },
+              pathname: "/config/places/modal",
+              params: { place_id: item.id },
             })
           }
         />
@@ -111,4 +111,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PersonsTable;
+export default PlacesTable;

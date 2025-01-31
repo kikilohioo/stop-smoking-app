@@ -7,6 +7,12 @@ import Slider from "@react-native-community/slider";
 import { useSQLiteContext } from "expo-sqlite";
 import { router, useLocalSearchParams } from "expo-router";
 import { DBMotiveType } from "../Types";
+import {
+  ConductualIcon,
+  EmotionalIcon,
+  PhysiologicalIcon,
+  SocialIcon,
+} from "../Icons";
 
 // Definición de los tipos para los datos del formulario
 type FormData = {
@@ -73,6 +79,7 @@ function MotiveModal() {
           ]
         );
       }
+      setSubmittedData(data);
       reset();
       router.back();
     } catch (error) {
@@ -186,7 +193,9 @@ function MotiveModal() {
           render={({ field: { onChange } }) => (
             <>
               {/* Barra de intensidad 1 */}
-              <Text>Social: {spheres.social}%</Text>
+              <Text>
+                <SocialIcon size={20} />  Social: {spheres.social}%
+              </Text>
               <Slider
                 value={spheres.social}
                 onValueChange={(value) => {
@@ -199,7 +208,9 @@ function MotiveModal() {
               />
 
               {/* Barra de intensidad 2 */}
-              <Text>Emocional: {spheres.emotional}%</Text>
+              <Text>
+                <EmotionalIcon size={20} />  Emocional: {spheres.emotional}%
+              </Text>
               <Slider
                 value={spheres.emotional}
                 onValueChange={(value) => {
@@ -212,7 +223,9 @@ function MotiveModal() {
               />
 
               {/* Barra de intensidad 3 */}
-              <Text>Conductual: {spheres.conductual}%</Text>
+              <Text>
+                <ConductualIcon size={20} />  Conductual: {spheres.conductual}%
+              </Text>
               <Slider
                 value={spheres.conductual}
                 onValueChange={(value) => {
@@ -225,8 +238,10 @@ function MotiveModal() {
               />
 
               {/* Barra de intensidad 4 */}
-              <Text>Fisiológico: {spheres.physiological}%</Text>
-              <Slider
+              <Text>
+                <PhysiologicalIcon size={20} />  Physiological: {spheres.physiological}%
+              </Text>
+              <Slider 
                 value={spheres.physiological}
                 onValueChange={(value) => {
                   handleSpheresChange(value, "physiological", onChange);
@@ -249,16 +264,8 @@ function MotiveModal() {
           textColor="white"
           style={styles.button}
         >
-          Crear nuevo motivo
+          {motiveId ? "Actualizar" : "Crear"} motivo
         </Button>
-
-        {/* Mostrar los datos enviados */}
-        {submittedData && (
-          <View style={styles.submittedContainer}>
-            <Text style={styles.submittedTitle}>Submitted Data:</Text>
-            <Text>Name: {submittedData.name}</Text>
-          </View>
-        )}
       </View>
     </SafeAreaView>
   );

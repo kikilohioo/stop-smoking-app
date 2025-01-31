@@ -5,7 +5,7 @@ import { Button } from "react-native-paper";
 import { fireBrick, marianBlue } from "../../assets/palette";
 import { useSQLiteContext } from "expo-sqlite";
 import { router, useLocalSearchParams } from "expo-router";
-import { DBPersonType } from "../Types";
+import { DBTriggerType } from "../Types";
 
 // Definición de los tipos para los datos del formulario
 type FormData = {
@@ -13,7 +13,7 @@ type FormData = {
   name: string;
 };
 
-function PersonModal() {
+function TriggerModal() {
   const {
     control,
     handleSubmit,
@@ -22,21 +22,21 @@ function PersonModal() {
   } = useForm<FormData>();
 
   const database = useSQLiteContext();
-  const { person_id } = useLocalSearchParams();
-  const personId = person_id ? Number(person_id) : false;
+  const { trigger_id } = useLocalSearchParams();
+  const triggerId = trigger_id ? Number(trigger_id) : false;
 
   const [submittedData, setSubmittedData] = useState<FormData | null>(null);
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
-      if (person_id) {
-        await database.runAsync(`UPDATE persons SET name = ?;`, [
+      if (trigger_id) {
+        await database.runAsync(`UPDATE triggers SET name = ?;`, [
           data.name,
-          personId,
+          triggerId,
         ]);
       } else {
         await database.runAsync(
-          `INSERT INTO persons (name) 
+          `INSERT INTO triggers (name) 
            VALUES (?);`,
           [data.name]
         );
@@ -50,13 +50,13 @@ function PersonModal() {
   };
 
   useEffect(() => {
-    console.log(person_id);
-    if (person_id) {
-      const loadPerson = async () => {
+    console.log(trigger_id);
+    if (trigger_id) {
+      const loadTrigger = async () => {
         try {
-          const result = await database.getFirstAsync<DBPersonType>(
-            "SELECT * FROM persons WHERE id = ?",
-            [personId]
+          const result = await database.getFirstAsync<DBTriggerType>(
+            "SELECT * FROM triggers WHERE id = ?",
+            [triggerId]
           );
           if (result) {
             reset({
@@ -69,9 +69,9 @@ function PersonModal() {
         }
       };
 
-      loadPerson();
+      loadTrigger();
     }
-  }, [person_id]);
+  }, [trigger_id]);
 
   return (
     <SafeAreaView>
@@ -84,7 +84,7 @@ function PersonModal() {
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               style={styles.input}
-              placeholder="Nombre de la persona"
+              placeholder="Nombre del desencadenante"
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
@@ -101,7 +101,7 @@ function PersonModal() {
           textColor="white"
           style={styles.button}
         >
-          {personId ? "Actualizar" : "Crear"} persona
+          {triggerId ? "Actualizar" : "Crear"} desencadenante
         </Button>
       </View>
     </SafeAreaView>
@@ -146,4 +146,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PersonModal;
+export default TriggerModal;
