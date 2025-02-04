@@ -41,10 +41,10 @@ export function MotivePage() {
     }
   };
 
-  const deleteLeaveMotive = async (motive_id: number) => {
+  const deleteLeaveMotive = async (leave_motive_id: number) => {
     try {
       await database.runAsync("DELETE FROM leave_motives where id = ?", [
-        motive_id,
+        leave_motive_id,
       ]);
       await loadData();
       return true;
