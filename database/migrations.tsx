@@ -35,6 +35,15 @@ export default function migrations() {
       foreingKeys: [],
     },
     {
+      table: "leave_motives",
+      attributes: {
+        id: "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
+        name: "TEXT NOT NULL",
+        description: "TEXT NOT NULL",
+      },
+      foreingKeys: [],
+    },
+    {
       table: "persons",
       attributes: {
         id: "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",

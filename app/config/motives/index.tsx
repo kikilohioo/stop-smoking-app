@@ -9,16 +9,6 @@ export default function Motives() {
     <>
       <Stack.Screen
         options={{
-          headerRight: () => (
-            <View style={styles.headerTitleContainer}>
-              <IconButton
-                icon="plus"
-                size={20}
-                onPress={() => router.push("/config/motives/modal")}
-                style={styles.iconButton}
-              />
-            </View>
-          ),
           headerTitle: "Motivos",
         }}
       />
@@ -30,8 +20,5 @@ export default function Motives() {
 const styles = StyleSheet.create({
   headerTitleContainer: {
     paddingTop: 5,
-  },
-  iconButton: {
-    marginLeft: 10,
-  },
+  }
 });

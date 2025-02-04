@@ -33,6 +33,7 @@ const createDbIfNeeded = async (db: SQLiteDatabase) => {
       sql += "\n);";
 
       // Ejecutar la sentencia SQL en la base de datos
+      console.log("SQL", sql);
       const response = await db.execAsync(sql);
       console.log("Database created", response);
     });

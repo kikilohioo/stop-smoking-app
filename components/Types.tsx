@@ -7,6 +7,12 @@ export type DBMotiveType = {
   physiological: number;
 };
 
+export type DBLeaveMotiveType = {
+  id: number;
+  name: string;
+  description: string;
+};
+
 export type DBPlaceType = {
   id: number;
   name: string;

@@ -3,50 +3,30 @@ import { View, StyleSheet } from "react-native";
 import { FlatList } from "react-native";
 import { Text, Surface, IconButton } from "react-native-paper";
 import { fireBrick, fluorescentCyan } from "../../assets/palette";
-import { DBMotiveType } from "../Types";
+import { DBLeaveMotiveType } from "../Types";
 import { router } from "expo-router";
 import { ConductualIcon, EmotionalIcon, PhysiologicalIcon, SocialIcon } from "../Icons";
 
-type MotivesTableProps = {
-  data: DBMotiveType[];
-  deleteMotive: (motive_id: number) => Promise<boolean>;
+type LeaveMotivesTableProps = {
+  data: DBLeaveMotiveType[];
+  deleteLeaveMotive: (leave_motive_id: number) => Promise<boolean>;
 };
 
-const MotivesTable = ({ data, deleteMotive }: MotivesTableProps) => {
+const LeaveMotivesTable = ({ data, deleteLeaveMotive }: LeaveMotivesTableProps) => {
   const renderHeader = () => (
     <Surface style={styles.header}>
-      <Text style={[styles.headerText, { width: 140 }]}>Nombre</Text>
-      <Text style={[styles.cell, styles.headerText]}>S</Text>
-      <Text style={[styles.cell, styles.headerText]}>E</Text>
-      <Text style={[styles.cell, styles.headerText]}>C</Text>
-      <Text style={[styles.cell, styles.headerText]}>F</Text>
+      <Text style={[styles.headerText, { width: "91%" }]}>Nombre</Text>
       <Text style={[styles.headerText, { width: 30 }]}>-</Text>
     </Surface>
   );
 
-  const handleOnDelete = async (motive_id: number) => {
-    await deleteMotive(motive_id);
+  const handleOnDelete = async (leave_motive_id: number) => {
+    await deleteLeaveMotive(leave_motive_id);
   };
 
-  const renderRow = ({ item }: { item: MotivesTableProps["data"][0] }) => (
+  const renderRow = ({ item }: { item: LeaveMotivesTableProps["data"][0] }) => (
     <Surface style={styles.row}>
-      <Text style={{ width: 130 }}>{item.name}</Text>
-      <Text style={{ ...styles.cell, ...styles.slide }}>
-        <SocialIcon size={15} />
-        {item.social}%
-      </Text>
-      <Text style={{ ...styles.cell, ...styles.slide }}>
-        <EmotionalIcon size={15} />
-        {item.emotional}%
-      </Text>
-      <Text style={{ ...styles.cell, ...styles.slide }}>
-        <ConductualIcon size={15} />
-        {item.conductual}%
-      </Text>
-      <Text style={{ ...styles.cell, ...styles.slide }}>
-        <PhysiologicalIcon size={15} />
-        {item.physiological}%
-      </Text>
+      <Text style={{ width: "86.5%" }}>{item.name}</Text>
       <View style={styles.actions}>
         <IconButton
           icon="pencil"
@@ -54,8 +34,8 @@ const MotivesTable = ({ data, deleteMotive }: MotivesTableProps) => {
           size={20}
           onPress={() =>
             router.push({
-              pathname: "/config/motives/modal",
-              params: { motive_id: item.id },
+              pathname: "/config/motives/leave-modal",
+              params: { leave_motive_id: item.id },
             })
           }
         />
@@ -142,4 +122,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MotivesTable;
+export default LeaveMotivesTable;
