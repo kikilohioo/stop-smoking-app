@@ -3,28 +3,16 @@ import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { View, Text, TextInput, StyleSheet, SafeAreaView } from "react-native";
 import { Button, Divider } from "react-native-paper";
 import { fireBrick, marianBlue } from "../../assets/palette";
-import Slider from "@react-native-community/slider";
 import { useSQLiteContext } from "expo-sqlite";
 import { router, useLocalSearchParams } from "expo-router";
-import { DBMotiveType } from "../Types";
-import {
-  ConductualIcon,
-  EmotionalIcon,
-  PhysiologicalIcon,
-  SocialIcon,
-} from "../Icons";
+import { CigarFormData, DBMotiveType, MotiveFormData, Spheres } from "../Types";
+import SliderSelectSpheres from "../common/SliderSelectSpheres";
 
-// Definición de los tipos para los datos del formulario
 type FormData = {
   id?: number;
-  name: string;
-  spheres: {
-    social: number;
-    emotional: number;
-    conductual: number;
-    physiological: number;
-  };
-};
+  spheres: Spheres;
+} & Partial<MotiveFormData> &
+  Partial<CigarFormData>;
 
 function MotiveModal() {
   const {
@@ -58,7 +46,7 @@ function MotiveModal() {
         await database.runAsync(
           `UPDATE motives SET name = ?, social = ?, emotional = ?, conductual = ?, physiological = ? WHERE id = ?;`,
           [
-            data.name,
+            data?.name ? data.name : "",
             data.spheres.social,
             data.spheres.emotional,
             data.spheres.conductual,
@@ -71,7 +59,7 @@ function MotiveModal() {
           `INSERT INTO motives (name, social, emotional, conductual, physiological) 
            VALUES (?, ?, ?, ?, ?);`,
           [
-            data.name,
+            data?.name ? data.name : "",
             data.spheres.social,
             data.spheres.emotional,
             data.spheres.conductual,
@@ -182,77 +170,10 @@ function MotiveModal() {
 
         <Divider />
         <Text style={styles.title}>Esferas</Text>
-        <Controller
+        <SliderSelectSpheres
+          spheres={spheres}
           control={control}
-          name="spheres"
-          rules={{
-            validate: (value) =>
-              Object.values(value).reduce((acc, curr) => acc + curr, 0) ===
-                100 || "La suma de las esferas debe ser igual a 100%",
-          }}
-          render={({ field: { onChange } }) => (
-            <>
-              {/* Barra de intensidad 1 */}
-              <Text>
-                <SocialIcon size={20} />  Social: {spheres.social}%
-              </Text>
-              <Slider
-                value={spheres.social}
-                onValueChange={(value) => {
-                  handleSpheresChange(value, "social", onChange);
-                }}
-                minimumValue={0}
-                maximumValue={100}
-                step={1}
-                style={styles.slider}
-              />
-
-              {/* Barra de intensidad 2 */}
-              <Text>
-                <EmotionalIcon size={20} />  Emocional: {spheres.emotional}%
-              </Text>
-              <Slider
-                value={spheres.emotional}
-                onValueChange={(value) => {
-                  handleSpheresChange(value, "emotional", onChange);
-                }}
-                minimumValue={0}
-                maximumValue={100}
-                step={1}
-                style={styles.slider}
-              />
-
-              {/* Barra de intensidad 3 */}
-              <Text>
-                <ConductualIcon size={20} />  Conductual: {spheres.conductual}%
-              </Text>
-              <Slider
-                value={spheres.conductual}
-                onValueChange={(value) => {
-                  handleSpheresChange(value, "conductual", onChange);
-                }}
-                minimumValue={0}
-                maximumValue={100}
-                step={1}
-                style={styles.slider}
-              />
-
-              {/* Barra de intensidad 4 */}
-              <Text>
-                <PhysiologicalIcon size={20} />  Physiological: {spheres.physiological}%
-              </Text>
-              <Slider 
-                value={spheres.physiological}
-                onValueChange={(value) => {
-                  handleSpheresChange(value, "physiological", onChange);
-                }}
-                minimumValue={0}
-                maximumValue={100}
-                step={1}
-                style={styles.slider}
-              />
-            </>
-          )}
+          handleSpheresChange={handleSpheresChange}
         />
         {errors.spheres && (
           <Text style={styles.errorText}>{errors.spheres.message}</Text>

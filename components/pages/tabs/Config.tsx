@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { Screen } from "../../Screen";
 import LinkButton from "../../common/LinkButton";
+import CreateCigarButton from "../../common/CreateCigarButton";
 
 type LinkButtonData = {
   id: string;
@@ -38,6 +39,7 @@ export function ConfigPage() {
         numColumns={2}
         columnWrapperStyle={styles.row}
       />
+      <CreateCigarButton />
     </Screen>
   );
 }

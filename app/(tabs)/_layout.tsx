@@ -1,5 +1,7 @@
-import { Tabs } from "expo-router";
+import { router, Tabs } from "expo-router";
 import { ConfigIcon, HomeIcon, ListIcon } from "../../components/Icons";
+import { IconButton } from "react-native-paper";
+import { StyleSheet } from "react-native";
 
 export default function TabsLayout() {
   return (
