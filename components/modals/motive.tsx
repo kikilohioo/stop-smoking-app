@@ -10,6 +10,7 @@ import SliderSelectSpheres from "../common/SliderSelectSpheres";
 
 type FormData = {
   id?: number;
+  date_time: string;
   spheres: Spheres;
 } & Partial<MotiveFormData> &
   Partial<CigarFormData>;

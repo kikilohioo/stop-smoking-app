@@ -14,6 +14,7 @@ import { CigarFormData, MotiveFormData, Spheres } from "../Types";
 
 type CommonFormData = {
     id?: number;
+    date_time: string;
     spheres: Spheres;
   } & Partial<MotiveFormData> & Partial<CigarFormData>;
 

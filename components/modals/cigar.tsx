@@ -1,21 +1,37 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { View, Text, TextInput, StyleSheet, SafeAreaView } from "react-native";
-import { Button } from "react-native-paper";
+import { Button, IconButton } from "react-native-paper";
 import { fireBrick, marianBlue } from "../../assets/palette";
 import { useSQLiteContext } from "expo-sqlite";
-import { router, useLocalSearchParams } from "expo-router";
-import { CigarFormData, DBCigarType, MotiveFormData, Spheres } from "../Types";
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import {
+  CigarFormData,
+  DBCigarType,
+  DBMotiveType,
+  MotiveFormData,
+  Spheres,
+} from "../Types";
+import DateTimePicker from "../common/DateTimePicker";
+import SliderSelectSpheres from "../common/SliderSelectSpheres";
+import { SelectList } from "react-native-dropdown-select-list";
 
 // Definición de los tipos para los datos del formulario
 type FormData = {
   id?: number;
+  date_time: string;
   spheres: Spheres;
 } & Partial<MotiveFormData> &
   Partial<CigarFormData>;
+
+type AuxMotive = {
+  key: number;
+  value: string;
+  social: number;
+  emotional: number;
+  conductual: number;
+  physiological: number;
+};
 
 function CigarModal() {
   const {
@@ -30,97 +46,70 @@ function CigarModal() {
   const cigarId = cigar_id ? Number(cigar_id) : false;
 
   const [submittedData, setSubmittedData] = useState<FormData | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [date, setDate] = useState(new Date());
-  const [time, setTime] = useState(new Date());
+  const [dateTime, setDateTime] = useState<Date>(new Date());
+  const [showSpheres, setShowSpheres] = useState<boolean>(false);
+  const [motives, setMotives] = useState<AuxMotive[]>([]);
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [spheres, setSpheres] = useState<{
+    social: number;
+    emotional: number;
+    conductual: number;
+    physiological: number;
+  }>({
+    social: 0,
+    emotional: 0,
+    conductual: 0,
+    physiological: 0,
+  });
 
-  const toggleShowDatePicker = () => {
-    setShowDatePicker(!showDatePicker);
+  const handleDateTimePickerChange = (value: Date) => {
+    setDateTime(value);
   };
 
-  const toggleShowTimePicker = () => {
-    setShowTimePicker(!showTimePicker);
-  };
-
-  const handleDateChange = (
-    { type }: DateTimePickerEvent,
-    selectedValue: Date | undefined
+  const handleSpheresChange = (
+    value: number,
+    sphere: keyof typeof spheres,
+    onChange: (value: any) => void
   ) => {
-    if (type == "set") {
-      const currentValue = selectedValue;
-      setDate(currentValue ?? date);
-    } else {
-      toggleShowDatePicker();
+    if (timeoutId) {
+      clearTimeout(timeoutId); // Limpiar cualquier retardo anterior
     }
-  };
 
-  const handleTimeChange = (
-    { type }: DateTimePickerEvent,
-    selectedValue: Date | undefined
-  ) => {
-    if (type == "set") {
-      const currentValue = selectedValue;
-      setTime(currentValue ?? time);
-    } else {
-      toggleShowTimePicker();
-    }
-  };
+    const id = setTimeout(() => {
+      let auxSpheres = { ...spheres, [sphere]: 0 };
+      const auxTotal = Object.values(auxSpheres).reduce(
+        (acc, curr) => acc + curr,
+        0
+      );
 
-  const formatDate = (
-    format: "YYYY-MM-DD" | "DD-MM-YYYY" | "MM-DD-YYYY" | "DD/MM/YYYY"
-  ): string => {
-    const year = String(date.getFullYear()); // Convertir a string explícitamente
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return format.replace(/YYYY|MM|DD/g, (match: string): string => {
-      switch (match) {
-        case "YYYY":
-          return year;
-        case "MM":
-          return month;
-        case "DD":
-          return day;
-        default:
-          return match;
+      if (auxTotal + value > 100) {
+        let allowedMaxValues = 100 - auxTotal;
+        auxSpheres = {
+          ...auxSpheres,
+          [sphere]: allowedMaxValues,
+        };
+      } else {
+        auxSpheres = {
+          ...auxSpheres,
+          [sphere]: value,
+        };
       }
-    });
-  };
+      setSpheres(auxSpheres);
+      onChange(auxSpheres);
+    }, 300);
 
-  const formatTime = (
-    format: "HH:MM:SS.mmm" | "HH:MM:SS" | "HH:MM"
-  ): string => {
-    const hours = String(time.getHours()).padStart(2, "0");
-    const minutes = String(time.getMinutes()).padStart(2, "0");
-    const seconds = String(time.getSeconds()).padStart(2, "0");
-    const milliseconds = String(time.getMilliseconds()).padStart(3, "0");
-
-    return format.replace(/HH|MM|SS|mmm/g, (match: string): string => {
-      switch (match) {
-        case "HH":
-          return hours;
-        case "MM":
-          return minutes;
-        case "SS":
-          return seconds;
-        case "mmm":
-          return milliseconds;
-        default:
-          return match;
-      }
-    });
+    setTimeoutId(id);
   };
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
-      console.log(data)
+      console.log(data);
       // if (cigar_id) {
       //   // Actualizar un registro existente
       //   await database.runAsync(
-      //     `UPDATE cigars 
-      //      SET intensity = ?, motive_id = ?, social = ?, emotional = ?, 
-      //          conductual = ?, physiological = ?, trigger_id = ?, 
+      //     `UPDATE cigars
+      //      SET intensity = ?, motive_id = ?, social = ?, emotional = ?,
+      //          conductual = ?, physiological = ?, trigger_id = ?,
       //          place_id = ?, person_id = ?, date_time = ?
       //      WHERE id = ?;`,
       //     [
@@ -140,9 +129,9 @@ function CigarModal() {
       // } else {
       //   // Insertar un nuevo registro
       //   await database.runAsync(
-      //     `INSERT INTO cigars (intensity, motive_id, social, emotional, 
-      //                          conductual, physiological, trigger_id, 
-      //                          place_id, person_id, date_time) 
+      //     `INSERT INTO cigars (intensity, motive_id, social, emotional,
+      //                          conductual, physiological, trigger_id,
+      //                          place_id, person_id, date_time)
       //      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       //     [
       //       data.intensity ?? 0,
@@ -190,53 +179,72 @@ function CigarModal() {
     }
   }, [cigar_id]);
 
+  const loadData = async () => {
+    const motives = await database.getAllAsync<AuxMotive>(
+      "SELECT id as key, name as value, social, emotional, conductual, physiological FROM motives"
+    );
+    console.log(motives);
+    setMotives(motives);
+  };
+
+  const handleMotiveChange = (
+    value: number,
+    onChange: (value: any) => void
+  ) => {
+    const foundMotive = motives.find((motive) => motive.key === value);
+  
+    if (foundMotive) {
+      const { social, emotional, conductual, physiological } = foundMotive;
+      setSpheres({ social, emotional, conductual, physiological });
+    } else {
+      console.warn("Motive not found for key:", value);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData(); // Fetch data when the screen is focused
+    }, [])
+  );
+
   return (
     <SafeAreaView>
       <View style={styles.container}>
-        <Controller
+        <DateTimePicker
           control={control}
-          name="date_time"
-          rules={{ required: "Debe seleccionar una fecha y hora" }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <View style={styles.dateTimePicker}>
-              <Text style={styles.datePickerLabel}>Fecha y Hora</Text>
-              <TextInput
-                style={{ ...styles.input, flex: 2}}
-                placeholder="Fecha y hora"
-                onBlur={onBlur}
-                onChange={onChange}
-                onPress={toggleShowDatePicker}
-                value={value}
-              />
-              {showDatePicker && (
-                <DateTimePicker
-                  mode="date"
-                  display="spinner"
-                  value={date}
-                  onChange={handleDateChange}
-                />
-              )}
-              <TextInput
-                style={{ ...styles.input, marginLeft: 5, flex: 1 }}
-                placeholder="Fecha y hora"
-                onBlur={onBlur}
-                onChangeText={onChange}
-                onPress={toggleShowTimePicker}
-                value={formatTime("HH:MM:SS")}
-              />
-              {showTimePicker && (
-                <DateTimePicker
-                  mode="time"
-                  display="spinner"
-                  value={time}
-                  onChange={handleTimeChange}
-                />
-              )}
-            </View>
-          )}
+          handleDateTimePickerChange={handleDateTimePickerChange}
+          dateTime={dateTime}
         />
         {errors.date_time && (
           <Text style={styles.errorText}>{errors.date_time.message}</Text>
+        )}
+        <Controller
+          control={control}
+          name="motive_id"
+          rules={{ required: "Debe seleccionar un motivo" }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <SelectList
+              setSelected={(val: string) =>
+                onChange(motives.find((motive) => motive.value == val)?.key)
+              }
+              data={motives}
+              save="value"
+            />
+          )}
+        />
+        {/* ESFERAS */}
+        <Button
+          onPress={() => setShowSpheres(!showSpheres)}
+          textColor={showSpheres ? fireBrick(40) : marianBlue(50)}
+        >
+          {showSpheres ? "Ocultar esferas" : "Mostrar esferas"}
+        </Button>
+        {showSpheres && (
+          <SliderSelectSpheres
+            spheres={spheres}
+            control={control}
+            handleSpheresChange={handleSpheresChange}
+          />
         )}
 
         {/* Botón para enviar el formulario */}
@@ -278,24 +286,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 5,
   },
-  slider: {
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 20,
-    paddingVertical: 10,
-  },
   button: {
     backgroundColor: marianBlue(50),
-  },
-  dateTimePicker: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  datePickerLabel: {
-    paddingBottom: 10,
-    marginRight: 10,
   },
 });
 
