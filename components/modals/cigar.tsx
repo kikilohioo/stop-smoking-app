@@ -48,6 +48,7 @@ function CigarModal() {
   const [submittedData, setSubmittedData] = useState<FormData | null>(null);
   const [dateTime, setDateTime] = useState<Date>(new Date());
   const [showSpheres, setShowSpheres] = useState<boolean>(false);
+  const [selectedMotive, setSelectedMotive] = useState<string>("");
   const [motives, setMotives] = useState<AuxMotive[]>([]);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const [spheres, setSpheres] = useState<{
@@ -183,19 +184,19 @@ function CigarModal() {
     const motives = await database.getAllAsync<AuxMotive>(
       "SELECT id as key, name as value, social, emotional, conductual, physiological FROM motives"
     );
-    console.log(motives);
     setMotives(motives);
   };
 
   const handleMotiveChange = (
-    value: number,
+    value: string,
     onChange: (value: any) => void
   ) => {
-    const foundMotive = motives.find((motive) => motive.key === value);
-  
+    const auxMotiveId = motives.find((motive) => motive.value == value)?.key;
+    const foundMotive = motives.find((motive) => motive.key === auxMotiveId);
     if (foundMotive) {
       const { social, emotional, conductual, physiological } = foundMotive;
       setSpheres({ social, emotional, conductual, physiological });
+      onChange(auxMotiveId);
     } else {
       console.warn("Motive not found for key:", value);
     }
@@ -224,9 +225,12 @@ function CigarModal() {
           rules={{ required: "Debe seleccionar un motivo" }}
           render={({ field: { onChange, onBlur, value } }) => (
             <SelectList
-              setSelected={(val: string) =>
-                onChange(motives.find((motive) => motive.value == val)?.key)
-              }
+              onSelect={() => {
+                handleMotiveChange(selectedMotive, onChange);
+              }}
+              setSelected={(val: string) => {
+                setSelectedMotive(val);
+              }}
               data={motives}
               save="value"
             />
