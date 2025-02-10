@@ -15,6 +15,7 @@ import {
 import DateTimePicker from "../common/DateTimePicker";
 import SliderSelectSpheres from "../common/SliderSelectSpheres";
 import { SelectList } from "react-native-dropdown-select-list";
+import Slider from "@react-native-community/slider";
 
 // Definición de los tipos para los datos del formulario
 type FormData = {
@@ -33,23 +34,55 @@ type AuxMotive = {
   physiological: number;
 };
 
+type AuxTrigger = {
+  key: number;
+  value: string;
+};
+
+type AuxPerson = {
+  key: number;
+  value: string;
+};
+
+type AuxPlace = {
+  key: number;
+  value: string;
+};
+
 function CigarModal() {
+  const [dateTime, setDateTime] = useState<Date>(new Date());
   const {
     control,
     handleSubmit,
+    setValue,
+    getValues,
     formState: { errors },
     reset,
-  } = useForm<FormData>();
+  } = useForm<FormData>({
+    defaultValues: {
+      date_time: dateTime.toISOString(),
+      spheres: { social: 0, emotional: 0, conductual: 0, physiological: 0 },
+      intensity: 5,
+    },
+  });
 
   const database = useSQLiteContext();
   const { cigar_id } = useLocalSearchParams();
   const cigarId = cigar_id ? Number(cigar_id) : false;
 
   const [submittedData, setSubmittedData] = useState<FormData | null>(null);
-  const [dateTime, setDateTime] = useState<Date>(new Date());
   const [showSpheres, setShowSpheres] = useState<boolean>(false);
+  // estados de combos de seleccion
   const [selectedMotive, setSelectedMotive] = useState<string>("");
+  const [selectedTrigger, setSelectedTrigger] = useState<string>("");
+  const [selectedPerson, setSelectedPerson] = useState<string>("");
+  const [selectedPlace, setSelectedPlace] = useState<string>("");
+  // datos de otras tablas
   const [motives, setMotives] = useState<AuxMotive[]>([]);
+  const [triggers, setTriggers] = useState<AuxTrigger[]>([]);
+  const [persons, setPersons] = useState<AuxPerson[]>([]);
+  const [places, setPlaces] = useState<AuxPlace[]>([]);
+  // otros
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const [spheres, setSpheres] = useState<{
     social: number;
@@ -63,8 +96,13 @@ function CigarModal() {
     physiological: 0,
   });
 
-  const handleDateTimePickerChange = (value: Date) => {
+  const handleDateTimePickerChange = (
+    value: Date,
+    strValue: string,
+    onChange: (value: any) => void
+  ) => {
     setDateTime(value);
+    onChange(strValue);
   };
 
   const handleSpheresChange = (
@@ -114,13 +152,13 @@ function CigarModal() {
       //          place_id = ?, person_id = ?, date_time = ?
       //      WHERE id = ?;`,
       //     [
-      //       data.intensity ?? 0,
-      //       data.motive_id ?? 0,
-      //       data.spheres.social ?? 0,
-      //       data.spheres.emotional ?? 0,
-      //       data.spheres.conductual ?? 0,
-      //       data.spheres.physiological ?? 0,
-      //       data.trigger_id ?? 0,
+      //       data.intensity ?? 0,*
+      //       data.motive_id ?? 0,*
+      //       data.spheres.social ?? 0,*
+      //       data.spheres.emotional ?? 0,*
+      //       data.spheres.conductual ?? 0,*
+      //       data.spheres.physiological ?? 0,*
+      //       data.trigger_id ?? 0,*
       //       data.place_id ?? 0,
       //       data.person_id ?? 0,
       //       data.date_time ?? "NOW()",
@@ -157,7 +195,6 @@ function CigarModal() {
   };
 
   useEffect(() => {
-    console.log(cigar_id);
     if (cigar_id) {
       const loadCigar = async () => {
         try {
@@ -184,7 +221,19 @@ function CigarModal() {
     const motives = await database.getAllAsync<AuxMotive>(
       "SELECT id as key, name as value, social, emotional, conductual, physiological FROM motives"
     );
+    const triggers = await database.getAllAsync<AuxMotive>(
+      "SELECT id as key, name as value FROM triggers"
+    );
+    const persons = await database.getAllAsync<AuxMotive>(
+      "SELECT id as key, name as value FROM persons"
+    );
+    const places = await database.getAllAsync<AuxMotive>(
+      "SELECT id as key, name as value FROM places"
+    );
     setMotives(motives);
+    setTriggers(triggers);
+    setPersons(persons);
+    setPlaces(places);
   };
 
   const handleMotiveChange = (
@@ -196,9 +245,50 @@ function CigarModal() {
     if (foundMotive) {
       const { social, emotional, conductual, physiological } = foundMotive;
       setSpheres({ social, emotional, conductual, physiological });
+      setValue("spheres", { social, emotional, conductual, physiological });
       onChange(auxMotiveId);
     } else {
       console.warn("Motive not found for key:", value);
+    }
+  };
+
+  const handleTriggerChange = (
+    value: string,
+    onChange: (value: any) => void
+  ) => {
+    const auxTriggerId = triggers.find(
+      (trigger) => trigger.value == value
+    )?.key;
+    const foundTrigger = triggers.find(
+      (trigger) => trigger.key === auxTriggerId
+    );
+    if (foundTrigger) {
+      onChange(auxTriggerId);
+    } else {
+      console.warn("Trigger not found for key:", value);
+    }
+  };
+
+  const handlePersonChange = (
+    value: string,
+    onChange: (value: any) => void
+  ) => {
+    const auxPersonId = persons.find((person) => person.value == value)?.key;
+    const foundPerson = persons.find((person) => person.key === auxPersonId);
+    if (foundPerson) {
+      onChange(auxPersonId);
+    } else {
+      console.warn("Person not found for key:", value);
+    }
+  };
+
+  const handlePlaceChange = (value: string, onChange: (value: any) => void) => {
+    const auxPlaceId = places.find((places) => places.value == value)?.key;
+    const foundPlace = places.find((places) => places.key === auxPlaceId);
+    if (foundPlace) {
+      onChange(auxPlaceId);
+    } else {
+      console.warn("Place not found for key:", value);
     }
   };
 
@@ -223,19 +313,26 @@ function CigarModal() {
           control={control}
           name="motive_id"
           rules={{ required: "Debe seleccionar un motivo" }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <SelectList
-              onSelect={() => {
-                handleMotiveChange(selectedMotive, onChange);
-              }}
-              setSelected={(val: string) => {
-                setSelectedMotive(val);
-              }}
-              data={motives}
-              save="value"
-            />
+          render={({ field: { onChange } }) => (
+            <>
+              <Text style={{ marginBottom: 5 }}>Motivo</Text>
+              <SelectList
+                placeholder="Seleccione un motivo"
+                onSelect={() => {
+                  handleMotiveChange(selectedMotive, onChange);
+                }}
+                setSelected={(val: string) => {
+                  setSelectedMotive(val);
+                }}
+                data={motives}
+                save="value"
+              />
+            </>
           )}
         />
+        {errors.motive_id && (
+          <Text style={styles.errorText}>{errors.motive_id.message}</Text>
+        )}
         {/* ESFERAS */}
         <Button
           onPress={() => setShowSpheres(!showSpheres)}
@@ -243,12 +340,131 @@ function CigarModal() {
         >
           {showSpheres ? "Ocultar esferas" : "Mostrar esferas"}
         </Button>
-        {showSpheres && (
+        <View style={{ display: showSpheres ? "flex" : "none" }}>
           <SliderSelectSpheres
             spheres={spheres}
             control={control}
             handleSpheresChange={handleSpheresChange}
           />
+        </View>
+        {errors.spheres && (
+          <Text style={styles.errorText}>{errors.spheres.message}</Text>
+        )}
+        <Controller
+          control={control}
+          name="trigger_id"
+          render={({ field: { onChange } }) => (
+            <>
+              <Text style={{ marginBottom: 5, marginTop: 15 }}>
+                Desencadenante
+              </Text>
+              <SelectList
+                placeholder="Seleccione un desencadenante"
+                onSelect={() => {
+                  handleTriggerChange(selectedTrigger, onChange);
+                }}
+                setSelected={(val: string) => {
+                  setSelectedTrigger(val);
+                }}
+                data={triggers}
+                save="value"
+              />
+            </>
+          )}
+        />
+        {errors.trigger_id && (
+          <Text style={styles.errorText}>{errors.trigger_id.message}</Text>
+        )}
+        <Controller
+          control={control}
+          name="person_id"
+          render={({ field: { onChange } }) => (
+            <>
+              <Text style={{ marginBottom: 5, marginTop: 15 }}>Persona</Text>
+              <SelectList
+                placeholder="Seleccione una persona"
+                onSelect={() => {
+                  handlePersonChange(selectedPerson, onChange);
+                }}
+                setSelected={(val: string) => {
+                  setSelectedPerson(val);
+                }}
+                data={persons}
+                save="value"
+              />
+            </>
+          )}
+        />
+        {errors.person_id && (
+          <Text style={styles.errorText}>{errors.person_id.message}</Text>
+        )}
+        <Controller
+          control={control}
+          name="place_id"
+          rules={{ required: "Debe seleccionar un lugar" }}
+          render={({ field: { onChange } }) => (
+            <>
+              <Text style={{ marginBottom: 5, marginTop: 15 }}>Lugar</Text>
+              <SelectList
+                placeholder="Seleccione un lugar"
+                onSelect={() => {
+                  handlePersonChange(selectedPerson, onChange);
+                }}
+                setSelected={(val: string) => {
+                  setSelectedPerson(val);
+                }}
+                data={places}
+                save="value"
+              />
+            </>
+          )}
+        />
+        {errors.place_id && (
+          <Text style={styles.errorText}>{errors.place_id.message}</Text>
+        )}
+        <Controller
+          control={control}
+          name="intensity"
+          rules={{ required: "Debe seleccionar una intensidad" }}
+          render={({ field: { onChange, value } }) => (
+            <>
+              {/* Barra de intensidad 4 */}
+              <View
+                style={{
+                  paddingRight: 15,
+                  display: "flex",
+                  alignItems: "center",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text style={{ marginBottom: 5, marginTop: 15 }}>
+                  Intensidad de las ganas de fumar
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: fireBrick(10),
+                    paddingHorizontal: 10,
+                    paddingVertical: 2,
+                    borderRadius: 5,
+                  }}
+                >
+                  <Text>{getValues().intensity}</Text>
+                </View>
+              </View>
+              <Slider
+                value={value}
+                onValueChange={(value) => onChange(value)}
+                minimumValue={0}
+                step={1}
+                maximumValue={10}
+                style={styles.slider}
+              />
+            </>
+          )}
+        />
+        {errors.intensity && (
+          <Text style={styles.errorText}>{errors.intensity.message}</Text>
         )}
 
         {/* Botón para enviar el formulario */}
@@ -292,6 +508,9 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: marianBlue(50),
+  },
+  slider: {
+    marginBottom: 20,
   },
 });
 

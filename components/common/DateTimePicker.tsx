@@ -4,7 +4,7 @@ import { StyleSheet, View } from "react-native";
 import { Text, TextInput } from "react-native-paper";
 import { CigarFormData, MotiveFormData, Spheres } from "../Types";
 import { fireBrick } from "../../assets/palette";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type CommonFormData = {
     id?: number;
@@ -16,7 +16,9 @@ type DateTimePickerProps = {
   control: Control<CommonFormData, any>;
   dateTime: Date;
   handleDateTimePickerChange: (
-    value: Date
+    value: Date,
+    strValue: string,
+    onChange: (value: any) => void
   ) => void;
 };
 
@@ -43,10 +45,10 @@ export default function DateTimePicker({
     selectedValue: Date | undefined,
     onChange: (value: any) => void
   ) => {
+    console.log('variableName');
     if (type == "set") {
       const currentValue = selectedValue;
-      handleDateTimePickerChange(currentValue ?? dateTime);
-      onChange(formatDateTime(currentValue ?? dateTime));
+      handleDateTimePickerChange(currentValue ?? dateTime, formatDateTime(currentValue ?? dateTime), onChange);
       toggleShowDateTimePicker();
     } else {
       toggleShowDateTimePicker();

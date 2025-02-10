@@ -14,6 +14,8 @@ const createDbIfNeeded = async (db: SQLiteDatabase) => {
     migrations().forEach(async (migration) => {
       const { table, attributes, foreingKeys } = migration;
 
+      await db.execAsync(`DROP TABLE IF EXISTS ${table}`);
+
       // Construir la sentencia SQL para crear la tabla
       let sql = `CREATE TABLE IF NOT EXISTS ${table} (\n`;
 
@@ -62,7 +64,6 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="(tabs)" />
-          
         </Stack>
       </SQLiteProvider>
       <StatusBar style="auto" />
