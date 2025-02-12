@@ -1,5 +1,5 @@
 export type DBCigarType = {
-  id: number;
+  id?: number;
   intensity: number;
   motive_id: number;
   social: number;
@@ -13,7 +13,7 @@ export type DBCigarType = {
 };
 
 export type DBMotiveType = {
-  id: number;
+  id?: number;
   name: string;
   social: number;
   emotional: number;
@@ -22,23 +22,23 @@ export type DBMotiveType = {
 };
 
 export type DBLeaveMotiveType = {
-  id: number;
+  id?: number;
   name: string;
   description: string;
 };
 
 export type DBPlaceType = {
-  id: number;
+  id?: number;
   name: string;
 };
 
 export type DBPersonType = {
-  id: number;
+  id?: number;
   name: string;
 };
 
 export type DBTriggerType = {
-  id: number;
+  id?: number;
   name: string;
 };
 
@@ -64,4 +64,9 @@ export type CigarFormData = {
   place_id: number;
   person_id: number;
   date_time: string;
+};
+
+export type Seeder<T> = {
+  table: string;
+  data: T[];
 };

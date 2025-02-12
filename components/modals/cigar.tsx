@@ -143,52 +143,52 @@ function CigarModal() {
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
       console.log(data);
-      // if (cigar_id) {
-      //   // Actualizar un registro existente
-      //   await database.runAsync(
-      //     `UPDATE cigars
-      //      SET intensity = ?, motive_id = ?, social = ?, emotional = ?,
-      //          conductual = ?, physiological = ?, trigger_id = ?,
-      //          place_id = ?, person_id = ?, date_time = ?
-      //      WHERE id = ?;`,
-      //     [
-      //       data.intensity ?? 0,*
-      //       data.motive_id ?? 0,*
-      //       data.spheres.social ?? 0,*
-      //       data.spheres.emotional ?? 0,*
-      //       data.spheres.conductual ?? 0,*
-      //       data.spheres.physiological ?? 0,*
-      //       data.trigger_id ?? 0,*
-      //       data.place_id ?? 0,
-      //       data.person_id ?? 0,
-      //       data.date_time ?? "NOW()",
-      //       cigarId, // ID del cigarro que se actualiza
-      //     ]
-      //   );
-      // } else {
-      //   // Insertar un nuevo registro
-      //   await database.runAsync(
-      //     `INSERT INTO cigars (intensity, motive_id, social, emotional,
-      //                          conductual, physiological, trigger_id,
-      //                          place_id, person_id, date_time)
-      //      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-      //     [
-      //       data.intensity ?? 0,
-      //       data.motive_id ?? 0,
-      //       data.spheres.social ?? 0,
-      //       data.spheres.emotional ?? 0,
-      //       data.spheres.conductual ?? 0,
-      //       data.spheres.physiological ?? 0,
-      //       data.trigger_id ?? 0,
-      //       data.place_id ?? 0,
-      //       data.person_id ?? 0,
-      //       data.date_time ?? "NOW()",
-      //     ]
-      //   );
-      // }
-      // setSubmittedData(data);
-      // reset();
-      // router.back();
+      if (cigar_id) {
+        // Actualizar un registro existente
+        await database.runAsync(
+          `UPDATE cigars
+           SET intensity = ?, motive_id = ?, social = ?, emotional = ?,
+               conductual = ?, physiological = ?, trigger_id = ?,
+               place_id = ?, person_id = ?, date_time = ?
+           WHERE id = ?;`,
+          [
+            data.intensity ?? 0,
+            data.motive_id ?? 0,
+            data.spheres.social ?? 0,
+            data.spheres.emotional ?? 0,
+            data.spheres.conductual ?? 0,
+            data.spheres.physiological ?? 0,
+            data.trigger_id ?? 0,
+            data.place_id ?? 0,
+            data.person_id ?? 0,
+            data.date_time ?? "NOW()",
+            cigarId, // ID del cigarro que se actualiza
+          ]
+        );
+      } else {
+        // Insertar un nuevo registro
+        await database.runAsync(
+          `INSERT INTO cigars (intensity, motive_id, social, emotional,
+                               conductual, physiological, trigger_id,
+                               place_id, person_id, date_time)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          [
+            data.intensity ?? 0,
+            data.motive_id ?? 0,
+            data.spheres.social ?? 0,
+            data.spheres.emotional ?? 0,
+            data.spheres.conductual ?? 0,
+            data.spheres.physiological ?? 0,
+            data.trigger_id ?? 0,
+            data.place_id ?? 0,
+            data.person_id ?? 0,
+            data.date_time ?? "NOW()",
+          ]
+        );
+      }
+      setSubmittedData(data);
+      reset();
+      router.back();
     } catch (error) {
       console.error("Error al insertar o actualizar el registro:", error);
     }
@@ -408,10 +408,10 @@ function CigarModal() {
               <SelectList
                 placeholder="Seleccione un lugar"
                 onSelect={() => {
-                  handlePersonChange(selectedPerson, onChange);
+                  handlePlaceChange(selectedPlace, onChange);
                 }}
                 setSelected={(val: string) => {
-                  setSelectedPerson(val);
+                  setSelectedPlace(val);
                 }}
                 data={places}
                 save="value"
