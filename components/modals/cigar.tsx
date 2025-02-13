@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
-import { View, Text, TextInput, StyleSheet, SafeAreaView } from "react-native";
+import { View, Text, TextInput, StyleSheet, SafeAreaView, ScrollView } from "react-native";
 import { Button, IconButton } from "react-native-paper";
 import { fireBrick, marianBlue } from "../../assets/palette";
 import { useSQLiteContext } from "expo-sqlite";
@@ -83,6 +83,7 @@ function CigarModal() {
   const [persons, setPersons] = useState<AuxPerson[]>([]);
   const [places, setPlaces] = useState<AuxPlace[]>([]);
   // otros
+  const [intensity, setIntensity] = useState<number>(5);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const [spheres, setSpheres] = useState<{
     social: number;
@@ -202,14 +203,40 @@ function CigarModal() {
             "SELECT * FROM cigars WHERE id = ?",
             [cigarId]
           );
+
           if (result) {
             reset({
               id: result.id,
-              // name: result.name,
+              date_time: result.date_time, // Asegúrate de que date_time esté bien formateado
+              intensity: result.intensity,
+              motive_id: result.motive_id,
+              trigger_id: result.trigger_id,
+              person_id: result.person_id,
+              place_id: result.place_id,
+              spheres: {
+                social: result.social,
+                emotional: result.emotional,
+                conductual: result.conductual,
+                physiological: result.physiological,
+              },
             });
+
+            setDateTime(new Date(result.date_time)); // Ajusta el estado del datetime picker
+            setSpheres({
+              social: result.social,
+              emotional: result.emotional,
+              conductual: result.conductual,
+              physiological: result.physiological,
+            });
+
+            setSelectedMotive(result.motive_id.toString())
+            setSelectedTrigger(result.trigger_id.toString())
+            setSelectedPerson(result.person_id.toString())
+            setSelectedPlace(result.place_id.toString())
+            setIntensity(result.intensity)
           }
         } catch (error) {
-          console.error("Error cargando el motivo:", error);
+          console.error("Error cargando el cigarro:", error);
         }
       };
 
@@ -292,6 +319,18 @@ function CigarModal() {
     }
   };
 
+  const handleIntensityChange = (value: number, onChange: (value: any) => void) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId); // Limpiar cualquier retardo anterior
+    }
+
+    const id = setTimeout(() => {
+      onChange(value);
+    }, 300);
+
+    setTimeoutId(id);
+  }
+
   useFocusEffect(
     useCallback(() => {
       loadData(); // Fetch data when the screen is focused
@@ -300,11 +339,12 @@ function CigarModal() {
 
   return (
     <SafeAreaView>
-      <View style={styles.container}>
+      <ScrollView style={styles.container}>
         <DateTimePicker
           control={control}
           handleDateTimePickerChange={handleDateTimePickerChange}
           dateTime={dateTime}
+          disabled={cigar_id ? true : false}
         />
         {errors.date_time && (
           <Text style={styles.errorText}>{errors.date_time.message}</Text>
@@ -317,6 +357,7 @@ function CigarModal() {
             <>
               <Text style={{ marginBottom: 5 }}>Motivo</Text>
               <SelectList
+                defaultOption={motives.find((motive) => motive.key.toString() == selectedMotive)}
                 placeholder="Seleccione un motivo"
                 onSelect={() => {
                   handleMotiveChange(selectedMotive, onChange);
@@ -344,7 +385,11 @@ function CigarModal() {
           <SliderSelectSpheres
             spheres={spheres}
             control={control}
-            handleSpheresChange={handleSpheresChange}
+            handleSpheresChange={(value, sphere, onChange) => {
+              const formSpheres = getValues().spheres
+              if (formSpheres[sphere] == value) return
+              handleSpheresChange(value, sphere, onChange)
+            }}
           />
         </View>
         {errors.spheres && (
@@ -359,6 +404,7 @@ function CigarModal() {
                 Desencadenante
               </Text>
               <SelectList
+                defaultOption={triggers.find((trigger) => trigger.key.toString() == selectedTrigger)}
                 placeholder="Seleccione un desencadenante"
                 onSelect={() => {
                   handleTriggerChange(selectedTrigger, onChange);
@@ -382,6 +428,7 @@ function CigarModal() {
             <>
               <Text style={{ marginBottom: 5, marginTop: 15 }}>Persona</Text>
               <SelectList
+                defaultOption={persons.find((person) => person.key.toString() == selectedPerson)}
                 placeholder="Seleccione una persona"
                 onSelect={() => {
                   handlePersonChange(selectedPerson, onChange);
@@ -406,6 +453,7 @@ function CigarModal() {
             <>
               <Text style={{ marginBottom: 5, marginTop: 15 }}>Lugar</Text>
               <SelectList
+                defaultOption={places.find((place) => place.key.toString() == selectedPlace)}
                 placeholder="Seleccione un lugar"
                 onSelect={() => {
                   handlePlaceChange(selectedPlace, onChange);
@@ -453,8 +501,8 @@ function CigarModal() {
                 </View>
               </View>
               <Slider
-                value={value}
-                onValueChange={(value) => onChange(value)}
+                value={intensity}
+                onValueChange={(value) => handleIntensityChange(value, onChange)}
                 minimumValue={0}
                 step={1}
                 maximumValue={10}
@@ -475,7 +523,7 @@ function CigarModal() {
         >
           {cigarId ? "Actualizar" : "Anotar"} cigarro
         </Button>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -508,6 +556,7 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: marianBlue(50),
+    marginBottom: 40
   },
   slider: {
     marginBottom: 20,

@@ -6,9 +6,9 @@ export type DBCigarType = {
   emotional: number;
   conductual: number;
   physiological: number;
-  trigger_id: number;
+  trigger_id: number | null;
   place_id: number;
-  person_id: number;
+  person_id: number | null;
   date_time: string;
 };
 

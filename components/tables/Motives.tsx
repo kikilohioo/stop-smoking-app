@@ -64,7 +64,11 @@ const MotivesTable = ({ data, deleteMotive }: MotivesTableProps) => {
           style={styles.delete}
           size={20}
           iconColor={fireBrick(40)}
-          onPress={() => handleOnDelete(item.id)}
+          onPress={() => {
+            if (item.id) {
+              handleOnDelete(item.id)
+            }
+          }}
         />
       </View>
     </Surface>
@@ -75,7 +79,7 @@ const MotivesTable = ({ data, deleteMotive }: MotivesTableProps) => {
       {renderHeader()}
       <FlatList
         data={data}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => (item.id ? item.id.toString() : Math.random().toString())}
         renderItem={renderRow}
         contentContainerStyle={styles.listContainer}
       />

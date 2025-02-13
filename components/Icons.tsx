@@ -46,3 +46,7 @@ export const CigarIcon = (props : SvgProps) => {
     </Svg>
   );
 };
+
+export const RightShortRow = (props: IconProp) => {
+  return <AntDesign name="rightcircleo" size={24} color="white" {...props} />;
+}

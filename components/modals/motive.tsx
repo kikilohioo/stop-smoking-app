@@ -19,6 +19,7 @@ function MotiveModal() {
   const {
     control,
     handleSubmit,
+    getValues,
     formState: { errors },
     reset,
   } = useForm<FormData>();
@@ -84,7 +85,7 @@ function MotiveModal() {
     if (timeoutId) {
       clearTimeout(timeoutId); // Limpiar cualquier retardo anterior
     }
-
+    
     const id = setTimeout(() => {
       let auxSpheres = { ...spheres, [sphere]: 0 };
       const auxTotal = Object.values(auxSpheres).reduce(
@@ -174,7 +175,10 @@ function MotiveModal() {
         <SliderSelectSpheres
           spheres={spheres}
           control={control}
-          handleSpheresChange={handleSpheresChange}
+          handleSpheresChange={(value, sphere, onChange) => {
+            if (getValues().spheres == spheres) return
+            handleSpheresChange(value, sphere, onChange)
+          }}
         />
         {errors.spheres && (
           <Text style={styles.errorText}>{errors.spheres.message}</Text>

@@ -13,6 +13,7 @@ type CommonFormData = {
   } & Partial<MotiveFormData> & Partial<CigarFormData>;
 
 type DateTimePickerProps = {
+  disabled?: boolean;
   control: Control<CommonFormData, any>;
   dateTime: Date;
   handleDateTimePickerChange: (
@@ -23,6 +24,7 @@ type DateTimePickerProps = {
 };
 
 export default function DateTimePicker({
+  disabled = false,
   control,
   dateTime,
   handleDateTimePickerChange,
@@ -143,6 +145,7 @@ export default function DateTimePicker({
         <View style={styles.dateTimePicker}>
           <Text style={styles.datePickerLabel}>Fecha y Hora</Text>
           <TextInput
+            disabled={disabled}
             style={{ ...styles.input, flex: 2 }}
             placeholder="Fecha"
             onBlur={onBlur}
@@ -151,8 +154,9 @@ export default function DateTimePicker({
               toggleShowDateTimePicker();
             }}
             value={formatDate("DD/MM/YYYY")}
-          />
+            />
           <TextInput
+            disabled={disabled}
             style={{ ...styles.input, marginLeft: 5, flex: 1 }}
             placeholder="Hora"
             onBlur={onBlur}

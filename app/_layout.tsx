@@ -55,9 +55,10 @@ const createDbIfNeeded = async (db: SQLiteDatabase) => {
           (row: Record<string, unknown>) =>
             `(${Object.values(row)
               .map((value) =>
-                typeof value === "string"
-                  ? `'${value.replace(/'/g, "''")}'`
-                  : value
+                value === null ? "NULL" :
+                  typeof value === "string"
+                    ? `'${value.replace(/'/g, "''")}'`
+                    : value
               )
               .join(", ")})`
         )

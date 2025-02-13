@@ -5,6 +5,8 @@ import { Text, Surface, IconButton } from "react-native-paper";
 import { fireBrick, fluorescentCyan } from "../../assets/palette";
 import { DBCigarType } from "../Types";
 import { router } from "expo-router";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 type CigarsTableProps = {
   data: DBCigarType[];
@@ -13,35 +15,38 @@ type CigarsTableProps = {
 const CigarsTable = ({ data }: CigarsTableProps) => {
   const renderHeader = () => (
     <Surface style={styles.header}>
-      <Text style={[styles.cell, styles.headerText]}>Nombre</Text>
-      <Text style={[styles.cellActions, styles.headerText]}>Acciones</Text>
+      <Text style={[styles.cell, styles.headerText]}>Fecha y Hora</Text>
+      <Text style={[styles.cellActions, styles.headerText, { width: 20, textAlign: "right" }]}>Acciones</Text>
     </Surface>
   );
 
-  const renderRow = ({ item }: { item: CigarsTableProps["data"][0] }) => (
-    <Surface style={styles.row}>
-      <Text style={styles.cell}>{item.date_time}</Text>
-      <View style={styles.actions}>
-        <IconButton
-          icon="pencil"
-          size={20}
-          onPress={() =>
-            router.push({
-              pathname: "/modal",
-              params: { cigar_id: item.id },
-            })
-          }
-        />
-      </View>
-    </Surface>
-  );
+  const renderRow = ({ item }: { item: CigarsTableProps["data"][0] }) => {
+    const formattedDate = format(new Date(item.date_time), "dd/MM/yyyy HH:mm", { locale: es });
+    return (
+      <Surface style={styles.row}>
+        <Text style={styles.cell}>{formattedDate}</Text>
+        <View style={styles.actions}>
+          <IconButton
+            icon="pencil"
+            size={20}
+            onPress={() =>
+              router.push({
+                pathname: "/modal",
+                params: { cigar_id: item.id },
+              })
+            }
+          />
+        </View>
+      </Surface>
+    )
+  };
 
   return (
     <View style={styles.container}>
       {renderHeader()}
       <FlatList
         data={data}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => (item.id ? item.id.toString() : Math.random().toString())}
         renderItem={renderRow}
         contentContainerStyle={styles.listContainer}
       />
