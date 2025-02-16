@@ -29,7 +29,6 @@ export function TriggerPage() {
       await loadData();
       return true;
     } catch (ex) {
-      console.log(ex);
       return false;
     }
   };

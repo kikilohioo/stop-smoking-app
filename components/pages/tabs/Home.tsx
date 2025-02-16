@@ -3,17 +3,23 @@ import { View, Text, StyleSheet, ScrollView, Dimensions } from "react-native";
 import { useSQLiteContext } from "expo-sqlite";
 import { Screen } from "../../Screen";
 import { DBCigarType } from "../../Types";
-import { BarChart, LineChart } from "react-native-chart-kit";
-import { fireBrick, fluorescentCyan, marianBlue, teal } from "../../../assets/palette";
+import { LineChart } from "react-native-chart-kit";
+import { fluorescentCyan, marianBlue, teal } from "../../../assets/palette";
 import { Link, useFocusEffect } from "expo-router";
-import { ConductualIcon, EmotionalIcon, PhysiologicalIcon, RightShortRow, SocialIcon } from "../../Icons";
+import {
+  ConductualIcon,
+  EmotionalIcon,
+  PhysiologicalIcon,
+  RightShortRow,
+  SocialIcon,
+} from "../../Icons";
 import CreateCigarButton from "../../common/CreateCigarButton";
 
 // const screenWidth = Dimensions.get("window").width;
 type LineChartData = {
-  data: number[],
-  color?: () => string
-}
+  data: number[];
+  color?: () => string;
+};
 
 export function HomePage() {
   const [lineChartData, setLineChartData] = useState<LineChartData[]>([]);
@@ -35,8 +41,8 @@ export function HomePage() {
     const actualWeekCigars = filterCurrentWeek(cigars);
     const lastWeekCigars = filterLastWeek(cigars);
 
-    setActualWeekCountCigars(actualWeekCigars.length)
-    setLastWeekCountCigars(lastWeekCigars.length)
+    setActualWeekCountCigars(actualWeekCigars.length);
+    setLastWeekCountCigars(lastWeekCigars.length);
 
     const data = processCigarData(actualWeekCigars);
     setLineChartData(data);
@@ -74,7 +80,11 @@ export function HomePage() {
         emotionalSum += cigar.emotional;
         conductualSum += cigar.conductual;
         physiologicalSum += cigar.physiological;
-        total += cigar.social + cigar.emotional + cigar.conductual + cigar.physiological;
+        total +=
+          cigar.social +
+          cigar.emotional +
+          cigar.conductual +
+          cigar.physiological;
       });
 
       const socialPer = (socialSum * 100) / total;
@@ -89,8 +99,25 @@ export function HomePage() {
       physiologicalData.data.push(physiologicalPer);
     });
 
-    return [{ ...socialData, color: (opacity = 0.5) => `rgba(0, 128, 0, ${opacity})` }, { ...emotionalData, color: (opacity = 0.5) => `rgba(0, 0, 255, ${opacity})` }, { ...conductualData, color: (opacity = 0.5) => `rgba(255, 165, 0, ${opacity})` }, { ...physiologicalData, color: (opacity = 0.5) => `rgba(255, 0, 0, ${opacity})` }];
-  }
+    return [
+      {
+        ...socialData,
+        color: (opacity = 0.5) => `rgba(0, 128, 0, ${opacity})`,
+      },
+      {
+        ...emotionalData,
+        color: (opacity = 0.5) => `rgba(0, 0, 255, ${opacity})`,
+      },
+      {
+        ...conductualData,
+        color: (opacity = 0.5) => `rgba(255, 165, 0, ${opacity})`,
+      },
+      {
+        ...physiologicalData,
+        color: (opacity = 0.5) => `rgba(255, 0, 0, ${opacity})`,
+      },
+    ];
+  };
 
   const filterCurrentWeek = (cigars: DBCigarType[]): DBCigarType[] => {
     const now = new Date(); // Fecha actual
@@ -99,7 +126,9 @@ export function HomePage() {
     // Obtener el inicio y fin de la semana actual (Lunes - Domingo)
     const dayOfWeek = today.getDay(); // 0 (domingo) - 6 (sábado)
     const startOfWeek = new Date(today); // Copia de la fecha actual
-    startOfWeek.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1)); // Lunes de esta semana
+    startOfWeek.setDate(
+      today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1)
+    ); // Lunes de esta semana
     startOfWeek.setHours(0, 0, 0, 0); // Inicio del día
 
     const endOfWeek = new Date(startOfWeek); // Copia de la fecha de inicio
@@ -107,7 +136,7 @@ export function HomePage() {
     endOfWeek.setHours(23, 59, 59, 999); // Fin del día
 
     return filterByDateRange(cigars, startOfWeek, endOfWeek);
-  }
+  };
 
   const filterLastWeek = (cigars: DBCigarType[]): DBCigarType[] => {
     const now = new Date(); // Fecha actual
@@ -116,7 +145,9 @@ export function HomePage() {
     // Obtener el inicio y fin de la SEMANA ACTUAL (Lunes - Domingo)
     const dayOfWeek = today.getDay(); // 0 (domingo) - 6 (sábado)
     const startOfCurrentWeek = new Date(today);
-    startOfCurrentWeek.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1)); // Lunes de esta semana
+    startOfCurrentWeek.setDate(
+      today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1)
+    ); // Lunes de esta semana
     startOfCurrentWeek.setHours(0, 0, 0, 0);
 
     const endOfCurrentWeek = new Date(startOfCurrentWeek);
@@ -163,7 +194,9 @@ export function HomePage() {
             <ConductualIcon size={20} />
             <PhysiologicalIcon size={20} />
             <Link asChild href="/reviews/spheres">
-              <Text style={styles.subtitle}>Esferas <RightShortRow size={15} /></Text>
+              <Text style={styles.subtitle}>
+                Esferas <RightShortRow size={15} />
+              </Text>
             </Link>
           </View>
           {
@@ -203,25 +236,95 @@ export function HomePage() {
               <Text>No hay datos para mostrar aun</Text>
           }
         </View>
-        <View style={{ ...styles.section, backgroundColor: "white", marginTop: 10, padding: 10 }}>
+        <View
+          style={{
+            ...styles.section,
+            backgroundColor: "white",
+            marginTop: 10,
+            padding: 10,
+          }}
+        >
           <Link asChild href="/review/count">
-            <Text style={{ ...styles.subtitle, textAlign: "left", color: "black" }}>Cantidad de cigarros <RightShortRow size={15} color="black" /></Text>
+            <Text
+              style={{ ...styles.subtitle, textAlign: "left", color: "black" }}
+            >
+              Cantidad de cigarros <RightShortRow size={15} color="black" />
+            </Text>
           </Link>
-          <View style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "red" }}>
-            <View style={{ display: "flex", flexDirection: "row", alignItems: "center", backgroundColor: "green", flex: 1, justifyContent: "space-between" }}>
-              <Text style={{backgroundColor: "skyblue", flex: 1, textAlign: "center"}}>Semana pasada</Text>
-              <View style={{ backgroundColor: "grey", paddingHorizontal: 10, paddingVertical: 3, borderRadius: 5 }}>
+          <View
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              backgroundColor: "red",
+            }}
+          >
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: "green",
+                flex: 1,
+                justifyContent: "space-between",
+              }}
+            >
+              <Text
+                style={{
+                  backgroundColor: "skyblue",
+                  flex: 1,
+                  textAlign: "center",
+                }}
+              >
+                Semana pasada
+              </Text>
+              <View
+                style={{
+                  backgroundColor: "grey",
+                  paddingHorizontal: 10,
+                  paddingVertical: 3,
+                  borderRadius: 5,
+                }}
+              >
                 <Text>{lastWeekCountCigars}</Text>
               </View>
             </View>
-            <View style={{ display: "flex", flexDirection: "row", alignItems: "center", backgroundColor: "blue", flex: 1, justifyContent: "space-between" }}>
-              <View style={{ backgroundColor: "grey", paddingHorizontal: 10, paddingVertical: 3, borderRadius: 5 }}>
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: "blue",
+                flex: 1,
+                justifyContent: "space-between",
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: "grey",
+                  paddingHorizontal: 10,
+                  paddingVertical: 3,
+                  borderRadius: 5,
+                }}
+              >
                 <Text>{actualWeekCountCigars}</Text>
               </View>
-              <Text style={{backgroundColor: "skyblue", flex: 1, textAlign: "center"}}>Esta semana</Text>
+              <Text
+                style={{
+                  backgroundColor: "skyblue",
+                  flex: 1,
+                  textAlign: "center",
+                }}
+              >
+                Esta semana
+              </Text>
             </View>
           </View>
-          <Text>Esta semana has fumado {lastWeekCountCigars - actualWeekCountCigars} cigarros menos</Text>
+          <Text>
+            Esta semana has fumado {lastWeekCountCigars - actualWeekCountCigars}{" "}
+            cigarros menos
+          </Text>
         </View>
       </ScrollView>
       <CreateCigarButton />
@@ -262,5 +365,5 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: -5,
     marginTop: 10,
-  }
+  },
 });

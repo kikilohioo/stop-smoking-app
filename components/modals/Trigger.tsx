@@ -50,7 +50,6 @@ function TriggerModal() {
   };
 
   useEffect(() => {
-    console.log(trigger_id);
     if (trigger_id) {
       const loadTrigger = async () => {
         try {

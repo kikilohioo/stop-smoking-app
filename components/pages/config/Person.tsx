@@ -29,7 +29,6 @@ export function PersonPage() {
       await loadData();
       return true;
     } catch (ex) {
-      console.log(ex);
       return false;
     }
   };

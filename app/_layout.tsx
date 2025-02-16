@@ -39,7 +39,6 @@ const createDbIfNeeded = async (db: SQLiteDatabase) => {
 
       // Ejecutar la sentencia SQL en la base de datos
       const response = await db.execAsync(sql);
-      console.log(`Table ${table} created: `, response);
 
       // inserts de los seeders de esta tabla
       // Buscar si hay seeders para esta tabla
@@ -55,8 +54,9 @@ const createDbIfNeeded = async (db: SQLiteDatabase) => {
           (row: Record<string, unknown>) =>
             `(${Object.values(row)
               .map((value) =>
-                value === null ? "NULL" :
-                  typeof value === "string"
+                value === undefined
+                  ? "NULL"
+                  : typeof value === "string"
                     ? `'${value.replace(/'/g, "''")}'`
                     : value
               )
@@ -66,10 +66,9 @@ const createDbIfNeeded = async (db: SQLiteDatabase) => {
 
       const insertSql = `INSERT INTO ${table} (${keys}) VALUES ${values};`;
 
-      console.log(insertSql);
       await db.execAsync(insertSql);
-      console.log(`Data for table ${table} inserted.`);
     });
+    console.log("Database created and data inserted");
   } catch (error) {
     console.error("Error creating database:", error);
   }

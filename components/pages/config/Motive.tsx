@@ -36,7 +36,6 @@ export function MotivePage() {
       await loadData();
       return true;
     } catch (ex) {
-      console.log(ex);
       return false;
     }
   };
@@ -49,7 +48,6 @@ export function MotivePage() {
       await loadData();
       return true;
     } catch (ex) {
-      console.log(ex);
       return false;
     }
   };

@@ -59,7 +59,6 @@ function LeaveMotiveModal() {
   };
 
   useEffect(() => {
-    console.log(leave_motive_id);
     if (leave_motive_id) {
       const loadLeaveMotive = async () => {
         try {

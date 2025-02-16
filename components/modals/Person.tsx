@@ -50,7 +50,6 @@ function PersonModal() {
   };
 
   useEffect(() => {
-    console.log(person_id);
     if (person_id) {
       const loadPerson = async () => {
         try {

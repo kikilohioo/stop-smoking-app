@@ -47,7 +47,6 @@ export default function DateTimePicker({
     selectedValue: Date | undefined,
     onChange: (value: any) => void
   ) => {
-    console.log('variableName');
     if (type == "set") {
       const currentValue = selectedValue;
       handleDateTimePickerChange(currentValue ?? dateTime, formatDateTime(currentValue ?? dateTime), onChange);

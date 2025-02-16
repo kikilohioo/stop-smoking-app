@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "blank-typescript-expo-app",
-    "slug": "blank-typescript-expo-app",
+    "name": "stop-smoking-app",
+    "slug": "stop-smoking-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -20,7 +20,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.kikimaaan.stopsmoking.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -28,6 +29,14 @@
     "plugins": [
       "expo-router",
       "expo-sqlite"
-    ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "92530719-0b7c-4c1b-9f83-6fcd014d13ff"
+      }
+    }
   }
 }

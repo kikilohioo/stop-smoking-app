@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Control, Controller } from "react-hook-form";
 import { Text } from "react-native-paper";
 import {
@@ -13,12 +13,14 @@ import { StyleSheet } from "react-native";
 import { CigarFormData, MotiveFormData, Spheres } from "../Types";
 
 type CommonFormData = {
-    id?: number;
-    date_time: string;
-    spheres: Spheres;
-  } & Partial<MotiveFormData> & Partial<CigarFormData>;
+  id?: number;
+  date_time: string;
+  spheres: Spheres;
+} & Partial<MotiveFormData> &
+  Partial<CigarFormData>;
 
 type SliderSelectSpheresProps = {
+  initialized?: boolean;
   control: Control<CommonFormData, any>;
   spheres: Spheres;
   handleSpheresChange: (
@@ -29,10 +31,60 @@ type SliderSelectSpheresProps = {
 };
 
 export default function SliderSelectSpheres({
+  initialized = false,
   control,
   spheres,
   handleSpheresChange,
 }: SliderSelectSpheresProps) {
+  const [auxSpheres, setAuxSpheres] = useState<Spheres>(spheres);
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [auxInitialized, setInitialized] = useState(initialized);
+
+  const auxHandleSphereChanges = (
+    value: number,
+    sphere: "social" | "emotional" | "conductual" | "physiological",
+    onChange: (value: any) => void
+  ) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId); // Limpiar cualquier retardo anterior
+    }
+
+    const id = setTimeout(() => {
+      let auxSpheres = { ...spheres, [sphere]: 0 };
+      const auxTotal = Object.values(auxSpheres).reduce(
+        (acc, curr) => acc + curr,
+        0
+      );
+
+      if (auxTotal + value > 100) {
+        let allowedMaxValues = 100 - auxTotal;
+        auxSpheres = {
+          ...auxSpheres,
+          [sphere]: allowedMaxValues,
+        };
+      } else {
+        auxSpheres = {
+          ...auxSpheres,
+          [sphere]: value,
+        };
+      }
+      setAuxSpheres(auxSpheres);
+      handleSpheresChange(value, sphere, onChange);
+    }, 150);
+
+    setTimeoutId(id);
+  };
+
+  useEffect(() => {
+    if (!auxInitialized) {
+      setInitialized(true);
+    }
+  }, [spheres]);
+  
+  useEffect(() => {
+    setAuxSpheres(spheres);
+  }, [auxInitialized, initialized, spheres])
+
   return (
     <Controller
       control={control}
@@ -46,12 +98,12 @@ export default function SliderSelectSpheres({
         <>
           {/* Barra de intensidad 1 */}
           <Text>
-            <SocialIcon size={20} /> Social: {spheres.social}%
+            <SocialIcon size={20} /> Social: {auxSpheres.social}%
           </Text>
           <Slider
-            value={spheres.social}
+            value={auxSpheres.social}
             onValueChange={(value) => {
-              handleSpheresChange(value, "social", onChange);
+              auxHandleSphereChanges(value, "social", onChange);
             }}
             minimumValue={0}
             maximumValue={100}
@@ -61,12 +113,12 @@ export default function SliderSelectSpheres({
 
           {/* Barra de intensidad 2 */}
           <Text>
-            <EmotionalIcon size={20} /> Emocional: {spheres.emotional}%
+            <EmotionalIcon size={20} /> Emocional: {auxSpheres.emotional}%
           </Text>
           <Slider
-            value={spheres.emotional}
+            value={auxSpheres.emotional}
             onValueChange={(value) => {
-              handleSpheresChange(value, "emotional", onChange);
+              auxHandleSphereChanges(value, "emotional", onChange);
             }}
             minimumValue={0}
             maximumValue={100}
@@ -76,12 +128,12 @@ export default function SliderSelectSpheres({
 
           {/* Barra de intensidad 3 */}
           <Text>
-            <ConductualIcon size={20} /> Conductual: {spheres.conductual}%
+            <ConductualIcon size={20} /> Conductual: {auxSpheres.conductual}%
           </Text>
           <Slider
-            value={spheres.conductual}
+            value={auxSpheres.conductual}
             onValueChange={(value) => {
-              handleSpheresChange(value, "conductual", onChange);
+              auxHandleSphereChanges(value, "conductual", onChange);
             }}
             minimumValue={0}
             maximumValue={100}
@@ -92,12 +144,12 @@ export default function SliderSelectSpheres({
           {/* Barra de intensidad 4 */}
           <Text>
             <PhysiologicalIcon size={20} /> Physiological:{" "}
-            {spheres.physiological}%
+            {auxSpheres.physiological}%
           </Text>
           <Slider
-            value={spheres.physiological}
+            value={auxSpheres.physiological}
             onValueChange={(value) => {
-              handleSpheresChange(value, "physiological", onChange);
+              auxHandleSphereChanges(value, "physiological", onChange);
             }}
             minimumValue={0}
             maximumValue={100}

@@ -6,10 +6,17 @@ export type DBCigarType = {
   emotional: number;
   conductual: number;
   physiological: number;
-  trigger_id: number | null;
+  trigger_id: number | undefined;
   place_id: number;
-  person_id: number | null;
+  person_id: number | undefined;
   date_time: string;
+};
+
+export type DBCigarPersonType = {
+  id?: number;
+  cigar_id: number;
+  person_id: number;
+  name?: string;
 };
 
 export type DBMotiveType = {
@@ -58,11 +65,11 @@ export type MotiveFormData = {
 export type CigarFormData = {
   id?: number;
   spheres: Spheres;
+  persons: number[];
   intensity: number;
   motive_id: number;
   trigger_id: number;
   place_id: number;
-  person_id: number;
   date_time: string;
 };
 

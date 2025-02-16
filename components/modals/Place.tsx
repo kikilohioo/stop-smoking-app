@@ -50,7 +50,6 @@ function PlaceModal() {
   };
 
   useEffect(() => {
-    console.log(place_id);
     if (place_id) {
       const loadPlace = async () => {
         try {

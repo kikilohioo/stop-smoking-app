@@ -29,7 +29,6 @@ function MotiveModal() {
   const motiveId = motive_id ? Number(motive_id) : false;
 
   const [submittedData, setSubmittedData] = useState<FormData | null>(null);
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const [spheres, setSpheres] = useState<{
     social: number;
     emotional: number;
@@ -82,38 +81,29 @@ function MotiveModal() {
     sphere: keyof typeof spheres,
     onChange: (value: any) => void
   ) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId); // Limpiar cualquier retardo anterior
+    let auxSpheres = { ...spheres, [sphere]: 0 };
+    const auxTotal = Object.values(auxSpheres).reduce(
+      (acc, curr) => acc + curr,
+      0
+    );
+
+    if (auxTotal + value > 100) {
+      let allowedMaxValues = 100 - auxTotal;
+      auxSpheres = {
+        ...auxSpheres,
+        [sphere]: allowedMaxValues,
+      };
+    } else {
+      auxSpheres = {
+        ...auxSpheres,
+        [sphere]: value,
+      };
     }
-    
-    const id = setTimeout(() => {
-      let auxSpheres = { ...spheres, [sphere]: 0 };
-      const auxTotal = Object.values(auxSpheres).reduce(
-        (acc, curr) => acc + curr,
-        0
-      );
-
-      if (auxTotal + value > 100) {
-        let allowedMaxValues = 100 - auxTotal;
-        auxSpheres = {
-          ...auxSpheres,
-          [sphere]: allowedMaxValues,
-        };
-      } else {
-        auxSpheres = {
-          ...auxSpheres,
-          [sphere]: value,
-        };
-      }
-      setSpheres(auxSpheres);
-      onChange(auxSpheres);
-    }, 300);
-
-    setTimeoutId(id);
+    setSpheres(auxSpheres);
+    onChange(auxSpheres);
   };
 
   useEffect(() => {
-    console.log(motive_id);
     if (motive_id) {
       const loadMotive = async () => {
         try {
@@ -132,6 +122,7 @@ function MotiveModal() {
                 physiological: result.physiological,
               },
             });
+            console.log("db result: ", result);
             setSpheres({
               social: result.social,
               emotional: result.emotional,
@@ -172,14 +163,20 @@ function MotiveModal() {
 
         <Divider />
         <Text style={styles.title}>Esferas</Text>
-        <SliderSelectSpheres
-          spheres={spheres}
-          control={control}
-          handleSpheresChange={(value, sphere, onChange) => {
-            if (getValues().spheres == spheres) return
-            handleSpheresChange(value, sphere, onChange)
-          }}
-        />
+        {(motive_id == undefined || Object.values(spheres).reduce((acc, curr) => acc + curr, 0) > 0) && (
+          <SliderSelectSpheres
+            spheres={spheres}
+            control={control}
+            handleSpheresChange={(value, sphere, onChange) => {
+              const formSpheres = getValues().spheres;
+              // console.log("actual form spheres: ", formSpheres, sphere, value);
+              if (formSpheres !== undefined && formSpheres[sphere] == value) {
+                return;
+              }
+              handleSpheresChange(value, sphere, onChange);
+            }}
+          />
+        )}
         {errors.spheres && (
           <Text style={styles.errorText}>{errors.spheres.message}</Text>
         )}

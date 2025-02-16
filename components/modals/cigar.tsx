@@ -1,12 +1,20 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
-import { View, Text, TextInput, StyleSheet, SafeAreaView, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+} from "react-native";
 import { Button, IconButton } from "react-native-paper";
 import { fireBrick, marianBlue } from "../../assets/palette";
 import { useSQLiteContext } from "expo-sqlite";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   CigarFormData,
+  DBCigarPersonType,
   DBCigarType,
   DBMotiveType,
   MotiveFormData,
@@ -14,7 +22,10 @@ import {
 } from "../Types";
 import DateTimePicker from "../common/DateTimePicker";
 import SliderSelectSpheres from "../common/SliderSelectSpheres";
-import { SelectList } from "react-native-dropdown-select-list";
+import {
+  MultipleSelectList,
+  SelectList,
+} from "react-native-dropdown-select-list";
 import Slider from "@react-native-community/slider";
 
 // Definición de los tipos para los datos del formulario
@@ -42,6 +53,11 @@ type AuxTrigger = {
 type AuxPerson = {
   key: number;
   value: string;
+};
+
+type SelectAuxPerson = {
+  key: any;
+  value: any;
 };
 
 type AuxPlace = {
@@ -75,7 +91,9 @@ function CigarModal() {
   // estados de combos de seleccion
   const [selectedMotive, setSelectedMotive] = useState<string>("");
   const [selectedTrigger, setSelectedTrigger] = useState<string>("");
-  const [selectedPerson, setSelectedPerson] = useState<string>("");
+  const [selectedPersons, setSelectedPersons] = useState<
+    (string | undefined)[]
+  >([]);
   const [selectedPlace, setSelectedPlace] = useState<string>("");
   // datos de otras tablas
   const [motives, setMotives] = useState<AuxMotive[]>([]);
@@ -84,6 +102,7 @@ function CigarModal() {
   const [places, setPlaces] = useState<AuxPlace[]>([]);
   // otros
   const [intensity, setIntensity] = useState<number>(5);
+  const [rechargeSpheres, setRechargeSpheres] = useState<boolean>(false);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const [spheres, setSpheres] = useState<{
     social: number;
@@ -111,49 +130,40 @@ function CigarModal() {
     sphere: keyof typeof spheres,
     onChange: (value: any) => void
   ) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId); // Limpiar cualquier retardo anterior
+    let auxSpheres = { ...spheres, [sphere]: 0 };
+    const auxTotal = Object.values(auxSpheres).reduce(
+      (acc, curr) => acc + curr,
+      0
+    );
+
+    if (auxTotal + value > 100) {
+      let allowedMaxValues = 100 - auxTotal;
+      auxSpheres = {
+        ...auxSpheres,
+        [sphere]: allowedMaxValues,
+      };
+    } else {
+      auxSpheres = {
+        ...auxSpheres,
+        [sphere]: value,
+      };
     }
-
-    const id = setTimeout(() => {
-      let auxSpheres = { ...spheres, [sphere]: 0 };
-      const auxTotal = Object.values(auxSpheres).reduce(
-        (acc, curr) => acc + curr,
-        0
-      );
-
-      if (auxTotal + value > 100) {
-        let allowedMaxValues = 100 - auxTotal;
-        auxSpheres = {
-          ...auxSpheres,
-          [sphere]: allowedMaxValues,
-        };
-      } else {
-        auxSpheres = {
-          ...auxSpheres,
-          [sphere]: value,
-        };
-      }
-      setSpheres(auxSpheres);
-      onChange(auxSpheres);
-    }, 300);
-
-    setTimeoutId(id);
+    setSpheres(auxSpheres);
+    onChange(auxSpheres);
   };
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
-      console.log(data);
       if (cigar_id) {
         // Actualizar un registro existente
         await database.runAsync(
           `UPDATE cigars
            SET intensity = ?, motive_id = ?, social = ?, emotional = ?,
                conductual = ?, physiological = ?, trigger_id = ?,
-               place_id = ?, person_id = ?, date_time = ?
+               place_id = ?, date_time = ?
            WHERE id = ?;`,
           [
-            data.intensity ?? 0,
+            data.intensity ?? 5,
             data.motive_id ?? 0,
             data.spheres.social ?? 0,
             data.spheres.emotional ?? 0,
@@ -161,31 +171,67 @@ function CigarModal() {
             data.spheres.physiological ?? 0,
             data.trigger_id ?? 0,
             data.place_id ?? 0,
-            data.person_id ?? 0,
             data.date_time ?? "NOW()",
             cigarId, // ID del cigarro que se actualiza
           ]
         );
+
+        await database.runAsync(
+          "DELECT FROM cigar_persons where cigar_id = ?",
+          cigarId
+        );
+
+        const { persons } = data;
+
+        if (persons && persons.length > 0) {
+          // Suponiendo que 'persons' es un array de strings y la tabla tiene una columna 'name'
+          const values = persons
+            .map(
+              (value) => `(${cigarId}, ${value.toString().replace(/'/g, "''")})`
+            )
+            .join(", ");
+
+          const insertSql = `INSERT INTO cigar_persons (cigar_id, person_id) VALUES ${values};`;
+          await database.runAsync(insertSql);
+        }
       } else {
         // Insertar un nuevo registro
-        await database.runAsync(
+        let statement = await database.prepareAsync(
           `INSERT INTO cigars (intensity, motive_id, social, emotional,
                                conductual, physiological, trigger_id,
-                               place_id, person_id, date_time)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-          [
-            data.intensity ?? 0,
-            data.motive_id ?? 0,
-            data.spheres.social ?? 0,
-            data.spheres.emotional ?? 0,
-            data.spheres.conductual ?? 0,
-            data.spheres.physiological ?? 0,
-            data.trigger_id ?? 0,
-            data.place_id ?? 0,
-            data.person_id ?? 0,
-            data.date_time ?? "NOW()",
-          ]
+                               place_id, date_time)
+           VALUES ($intensity, $motive_id, $social, $emotional,
+                               $conductual, $physiological, $trigger_id,
+                               $place_id, $date_time);`
         );
+
+        let result = await statement.executeAsync({
+          $intensity: data.intensity ?? 0,
+          $motive_id: data.motive_id ?? 0,
+          $social: data.spheres.social ?? 0,
+          $emotional: data.spheres.emotional ?? 0,
+          $conductual: data.spheres.conductual ?? 0,
+          $physiological: data.spheres.physiological ?? 0,
+          $trigger_id: data.trigger_id ?? "NULL",
+          $place_id: data.place_id ?? 0,
+          $date_time: data.date_time ?? "NOW()",
+        });
+
+        let newCigarId = result.lastInsertRowId;
+
+        const { persons } = data;
+
+        if (persons && persons.length > 0) {
+          const values = persons
+            .map(
+              (value) =>
+                `(${newCigarId}, ${value.toString().replace(/'/g, "''")})`
+            )
+            .join(", ");
+
+          const insertSql = `INSERT INTO cigar_persons (cigar_id, person_id) VALUES ${values};`;
+          await database.runAsync(insertSql);
+        }
       }
       setSubmittedData(data);
       reset();
@@ -204,6 +250,14 @@ function CigarModal() {
             [cigarId]
           );
 
+          const cigarPersonsResult =
+            await database.getAllAsync<DBCigarPersonType>(
+              `SELECT cigar_persons.cigar_id, cigar_persons.person_id, cigar_persons.id  FROM cigar_persons
+                INNER JOIN persons on cigar_persons.person_id = persons.id
+                WHERE cigar_id = ?`,
+              [cigarId]
+            );
+
           if (result) {
             reset({
               id: result.id,
@@ -211,7 +265,6 @@ function CigarModal() {
               intensity: result.intensity,
               motive_id: result.motive_id,
               trigger_id: result.trigger_id,
-              person_id: result.person_id,
               place_id: result.place_id,
               spheres: {
                 social: result.social,
@@ -219,6 +272,7 @@ function CigarModal() {
                 conductual: result.conductual,
                 physiological: result.physiological,
               },
+              persons: cigarPersonsResult.map((cp) => cp.person_id),
             });
 
             setDateTime(new Date(result.date_time)); // Ajusta el estado del datetime picker
@@ -229,11 +283,17 @@ function CigarModal() {
               physiological: result.physiological,
             });
 
-            setSelectedMotive(result.motive_id.toString())
-            setSelectedTrigger(result.trigger_id.toString())
-            setSelectedPerson(result.person_id.toString())
-            setSelectedPlace(result.place_id.toString())
-            setIntensity(result.intensity)
+            setSelectedMotive(result.motive_id.toString());
+            setSelectedTrigger(
+              result.trigger_id ? result.trigger_id.toString() : ""
+            );
+            setSelectedPersons(
+              cigarPersonsResult !== null
+                ? cigarPersonsResult.map((cp) => cp.name)
+                : []
+            );
+            setSelectedPlace(result.place_id.toString());
+            setIntensity(result.intensity);
           }
         } catch (error) {
           console.error("Error cargando el cigarro:", error);
@@ -267,6 +327,7 @@ function CigarModal() {
     value: string,
     onChange: (value: any) => void
   ) => {
+    setRechargeSpheres(true);
     const auxMotiveId = motives.find((motive) => motive.value == value)?.key;
     const foundMotive = motives.find((motive) => motive.key === auxMotiveId);
     if (foundMotive) {
@@ -277,6 +338,7 @@ function CigarModal() {
     } else {
       console.warn("Motive not found for key:", value);
     }
+    setRechargeSpheres(false);
   };
 
   const handleTriggerChange = (
@@ -297,15 +359,16 @@ function CigarModal() {
   };
 
   const handlePersonChange = (
-    value: string,
+    values: (string | undefined)[],
     onChange: (value: any) => void
   ) => {
-    const auxPersonId = persons.find((person) => person.value == value)?.key;
-    const foundPerson = persons.find((person) => person.key === auxPersonId);
-    if (foundPerson) {
-      onChange(auxPersonId);
+    const auxPersonsId = persons
+      .filter((person) => values.find((v) => v == person.value))
+      ?.map((person) => person.key);
+    if (auxPersonsId.length == values.length) {
+      onChange(auxPersonsId);
     } else {
-      console.warn("Person not found for key:", value);
+      console.warn("Person not found for key:", values);
     }
   };
 
@@ -319,7 +382,10 @@ function CigarModal() {
     }
   };
 
-  const handleIntensityChange = (value: number, onChange: (value: any) => void) => {
+  const handleIntensityChange = (
+    value: number,
+    onChange: (value: any) => void
+  ) => {
     if (timeoutId) {
       clearTimeout(timeoutId); // Limpiar cualquier retardo anterior
     }
@@ -329,7 +395,7 @@ function CigarModal() {
     }, 300);
 
     setTimeoutId(id);
-  }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -357,7 +423,9 @@ function CigarModal() {
             <>
               <Text style={{ marginBottom: 5 }}>Motivo</Text>
               <SelectList
-                defaultOption={motives.find((motive) => motive.key.toString() == selectedMotive)}
+                defaultOption={motives.find(
+                  (motive) => motive.key.toString() == selectedMotive
+                )}
                 placeholder="Seleccione un motivo"
                 onSelect={() => {
                   handleMotiveChange(selectedMotive, onChange);
@@ -375,23 +443,35 @@ function CigarModal() {
           <Text style={styles.errorText}>{errors.motive_id.message}</Text>
         )}
         {/* ESFERAS */}
-        <Button
-          onPress={() => setShowSpheres(!showSpheres)}
-          textColor={showSpheres ? fireBrick(40) : marianBlue(50)}
-        >
-          {showSpheres ? "Ocultar esferas" : "Mostrar esferas"}
-        </Button>
-        <View style={{ display: showSpheres ? "flex" : "none" }}>
-          <SliderSelectSpheres
-            spheres={spheres}
-            control={control}
-            handleSpheresChange={(value, sphere, onChange) => {
-              const formSpheres = getValues().spheres
-              if (formSpheres[sphere] == value) return
-              handleSpheresChange(value, sphere, onChange)
-            }}
-          />
-        </View>
+        {(selectedMotive != "" ||
+          Object.values(spheres).reduce((acc, curr) => acc + curr, 0) > 0) &&
+          !rechargeSpheres && (
+            <>
+              <Button
+                onPress={() => setShowSpheres(!showSpheres)}
+                textColor={showSpheres ? fireBrick(40) : marianBlue(50)}
+              >
+                {showSpheres ? "Ocultar esferas" : "Mostrar esferas"}
+              </Button>
+              <View style={{ display: showSpheres ? "flex" : "none" }}>
+                <SliderSelectSpheres
+                  initialized={!rechargeSpheres}
+                  spheres={spheres}
+                  control={control}
+                  handleSpheresChange={(value, sphere, onChange) => {
+                    const formSpheres = getValues().spheres;
+                    if (
+                      formSpheres !== undefined &&
+                      formSpheres[sphere] == value
+                    ) {
+                      return;
+                    }
+                    handleSpheresChange(value, sphere, onChange);
+                  }}
+                />
+              </View>
+            </>
+          )}
         {errors.spheres && (
           <Text style={styles.errorText}>{errors.spheres.message}</Text>
         )}
@@ -404,7 +484,9 @@ function CigarModal() {
                 Desencadenante
               </Text>
               <SelectList
-                defaultOption={triggers.find((trigger) => trigger.key.toString() == selectedTrigger)}
+                defaultOption={triggers.find(
+                  (trigger) => trigger.key.toString() == selectedTrigger
+                )}
                 placeholder="Seleccione un desencadenante"
                 onSelect={() => {
                   handleTriggerChange(selectedTrigger, onChange);
@@ -423,27 +505,42 @@ function CigarModal() {
         )}
         <Controller
           control={control}
-          name="person_id"
-          render={({ field: { onChange } }) => (
-            <>
-              <Text style={{ marginBottom: 5, marginTop: 15 }}>Persona</Text>
-              <SelectList
-                defaultOption={persons.find((person) => person.key.toString() == selectedPerson)}
-                placeholder="Seleccione una persona"
-                onSelect={() => {
-                  handlePersonChange(selectedPerson, onChange);
-                }}
-                setSelected={(val: string) => {
-                  setSelectedPerson(val);
-                }}
-                data={persons}
-                save="value"
-              />
-            </>
-          )}
+          name="persons"
+          render={({ field: { onChange } }) => {
+            let initialPersons: number[] = getValues().persons ?? [];
+            let auxSelectedPersons: { key: any; value: any }[] =
+              initialPersons.length > 0
+                ? persons.map((p) => {
+                    if (initialPersons.includes(p.key)) {
+                      return {
+                        key: p.key as any,
+                        value: p.value as any,
+                      };
+                    }
+                  }).filter(p => p != undefined)
+                : [];
+
+            return (
+              <>
+                <Text style={{ marginBottom: 5, marginTop: 15 }}>Persona</Text>
+                <MultipleSelectList
+                  defaultOption={{key: "1" as any, value: "Pau" as any}}
+                  placeholder="Seleccione una persona"
+                  onSelect={() => {
+                    handlePersonChange(selectedPersons, onChange);
+                  }}
+                  setSelected={(values: string[]) => {
+                    setSelectedPersons(values);
+                  }}
+                  data={persons}
+                  save="value"
+                />
+              </>
+            );
+          }}
         />
-        {errors.person_id && (
-          <Text style={styles.errorText}>{errors.person_id.message}</Text>
+        {errors.persons && (
+          <Text style={styles.errorText}>{errors.persons.message}</Text>
         )}
         <Controller
           control={control}
@@ -453,7 +550,9 @@ function CigarModal() {
             <>
               <Text style={{ marginBottom: 5, marginTop: 15 }}>Lugar</Text>
               <SelectList
-                defaultOption={places.find((place) => place.key.toString() == selectedPlace)}
+                defaultOption={places.find(
+                  (place) => place.key.toString() == selectedPlace
+                )}
                 placeholder="Seleccione un lugar"
                 onSelect={() => {
                   handlePlaceChange(selectedPlace, onChange);
@@ -502,7 +601,9 @@ function CigarModal() {
               </View>
               <Slider
                 value={intensity}
-                onValueChange={(value) => handleIntensityChange(value, onChange)}
+                onValueChange={(value) =>
+                  handleIntensityChange(value, onChange)
+                }
                 minimumValue={0}
                 step={1}
                 maximumValue={10}
@@ -556,7 +657,7 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: marianBlue(50),
-    marginBottom: 40
+    marginBottom: 40,
   },
   slider: {
     marginBottom: 20,

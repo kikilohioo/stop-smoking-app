@@ -2,6 +2,16 @@
   "name": "stop-smoking-app",
   "version": "1.0.0",
   "main": "expo-router/entry",
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "react-native-chart-kit",
+          "react-native-dropdown-select-list"
+        ]
+      }
+    }
+  },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -28,7 +38,8 @@
     "react-native-paper": "^5.13.1",
     "react-native-safe-area-context": "4.12.0",
     "react-native-screens": "~4.4.0",
-    "react-native-svg": "15.8.0"
+    "react-native-svg": "15.8.0",
+    "expo-splash-screen": "~0.29.21"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

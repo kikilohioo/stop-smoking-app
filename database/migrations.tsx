@@ -73,7 +73,6 @@ export default function migrations() {
         id: "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
         cigar_id: "INTEGER",
         person_id: "INTEGER",
-        name: "TEXT NOT NULL",
       },
       foreingKeys: [
         "FOREIGN KEY (cigar_id) REFERENCES cigars(id) ON UPDATE no action ON DELETE no action",
