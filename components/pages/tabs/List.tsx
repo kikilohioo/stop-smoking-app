@@ -19,7 +19,7 @@ export function ListPage() {
 
   const loadData = async () => {
     const cigars = await database.getAllAsync<DBCigarType>(
-      "SELECT * FROM cigars"
+      "SELECT * FROM cigars ORDER BY id DESC"
     );
     setCigars(cigars);
   };
