@@ -72,7 +72,7 @@ export const MordidaIcon = (props : SvgProps) => {
 };
 
 export const RightShortRow = (props: IconProp) => {
-  return <AntDesign name="rightcircleo" size={24} color="white" {...props} />;
+  return <AntDesign name="rightcircleo" size={24} color="black" {...props} />;
 }
 
 export const RightRow = (props: IconProp) => {

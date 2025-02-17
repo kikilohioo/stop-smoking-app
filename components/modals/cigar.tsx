@@ -1,12 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-} from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, ScrollView } from "react-native";
 import { Button } from "react-native-paper";
 import { fireBrick, marianBlue } from "../../assets/palette";
 import { useSQLiteContext } from "expo-sqlite";
@@ -62,6 +56,8 @@ type AuxPlace = {
   key: number;
   value: string;
 };
+
+type DBCigarPersonAuxType = DBCigarPersonType & { name: string };
 
 function CigarModal() {
   const [dateTime, setDateTime] = useState<Date>(new Date());
@@ -175,7 +171,7 @@ function CigarModal() {
         );
 
         await database.runAsync(
-          "DELECT FROM cigar_persons where cigar_id = ?",
+          "DELETE FROM cigar_persons where cigar_id = ?",
           cigarId
         );
 
@@ -185,11 +181,11 @@ function CigarModal() {
           // Suponiendo que 'persons' es un array de strings y la tabla tiene una columna 'name'
           const values = persons
             .map(
-              (value) => `(${cigarId}, ${value.toString().replace(/'/g, "''")})`
+              (value) => `(${cigarId}, ${value.toString().replace(/'/g, "''")}, ${data.date_time ?? "NOW()"})`
             )
             .join(", ");
 
-          const insertSql = `INSERT INTO cigar_persons (cigar_id, person_id) VALUES ${values};`;
+          const insertSql = `INSERT INTO cigar_persons (cigar_id, person_id, date_time) VALUES ${values};`;
           await database.runAsync(insertSql);
         }
       } else {
@@ -249,9 +245,9 @@ function CigarModal() {
           );
 
           const cigarPersonsResult =
-            await database.getAllAsync<DBCigarPersonType>(
-              `SELECT cigar_persons.cigar_id, cigar_persons.person_id, cigar_persons.id  FROM cigar_persons
-                INNER JOIN persons on cigar_persons.person_id = persons.id
+            await database.getAllAsync<DBCigarPersonAuxType>(
+              `SELECT p.name, cp.cigar_id, cp.person_id, cp.id  FROM cigar_persons cp
+                INNER JOIN persons p on cp.person_id = p.id
                 WHERE cigar_id = ?`,
               [cigarId]
             );
@@ -288,7 +284,7 @@ function CigarModal() {
 
             setSelectedPersons(
               cigarPersonsResult !== null
-                ? cigarPersonsResult.map((cp) => cp.person_id.toString())
+                ? cigarPersonsResult.map((cp) => cp.name)
                 : []
             );
             setSelectedPlace(result.place_id.toString());
@@ -502,38 +498,57 @@ function CigarModal() {
         {errors.trigger_id && (
           <Text style={styles.errorText}>{errors.trigger_id.message}</Text>
         )}
-        {
-          cigar_id ?
-            (
-              <View>
-                <Text style={{ marginBottom: 5, marginTop: 15 }}>Personas</Text>
-                <Text style={{ marginBottom: 5, marginTop: 5 }}></Text>
+        {cigar_id ? (
+          selectedPersons.length > 0 ? (
+            <View>
+              <Text style={{ marginBottom: 5, marginTop: 15 }}>Personas</Text>
+              <View style={{ marginBottom: 5, marginTop: 5 }}>
+                {selectedPersons.map((sp) => (
+                  <Text
+                    style={{
+                      backgroundColor: "#808080",
+                      color: "white",
+                      paddingVertical: 5,
+                      paddingHorizontal: 20,
+                      marginRight: "auto",
+                      borderRadius: 15
+                    }}
+                  >
+                    {sp}
+                  </Text>
+                ))}
               </View>
-            )
-            :
-            (
-              <Controller
-                control={control}
-                name="persons"
-                render={({ field: { onChange } }) => (
-                  <>
-                    <Text style={{ marginBottom: 5, marginTop: 15 }}>Personas</Text>
-                    <MultipleSelectList
-                      placeholder="Seleccione una persona"
-                      onSelect={() => {
-                        handlePersonChange(selectedPersons, onChange);
-                      }}
-                      setSelected={(values: string[]) => {
-                        setSelectedPersons(values);
-                      }}
-                      data={persons}
-                      save="value"
-                    />
-                  </>
-                )}
-              />
-            )
-        }
+            </View>
+          ) : (
+            <View>
+              <Text style={{ marginBottom: 5, marginTop: 15 }}>Personas</Text>
+              <Text style={{ marginBottom: 5, marginTop: 5 }}>
+                No hay personas asociadas a este cigarro
+              </Text>
+            </View>
+          )
+        ) : (
+          <Controller
+            control={control}
+            name="persons"
+            render={({ field: { onChange } }) => (
+              <>
+                <Text style={{ marginBottom: 5, marginTop: 15 }}>Personas</Text>
+                <MultipleSelectList
+                  placeholder="Seleccione una persona"
+                  onSelect={() => {
+                    handlePersonChange(selectedPersons, onChange);
+                  }}
+                  setSelected={(values: string[]) => {
+                    setSelectedPersons(values);
+                  }}
+                  data={persons}
+                  save="value"
+                />
+              </>
+            )}
+          />
+        )}
         {errors.persons && (
           <Text style={styles.errorText}>{errors.persons.message}</Text>
         )}
