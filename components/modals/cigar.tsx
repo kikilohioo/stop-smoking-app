@@ -214,16 +214,17 @@ function CigarModal() {
         let newCigarId = result.lastInsertRowId;
 
         const { persons } = data;
+        console.log(data.date_time);
 
         if (persons && persons.length > 0) {
           const values = persons
             .map(
               (value) =>
-                `(${newCigarId}, ${value.toString().replace(/'/g, "''")})`
+                `(${newCigarId}, ${value.toString().replace(/'/g, "''")}, '${data.date_time ?? "NOW()"}')`
             )
             .join(", ");
 
-          const insertSql = `INSERT INTO cigar_persons (cigar_id, person_id) VALUES ${values};`;
+          const insertSql = `INSERT INTO cigar_persons (cigar_id, person_id, date_time) VALUES ${values};`;
           await database.runAsync(insertSql);
         }
       }
@@ -502,7 +503,7 @@ function CigarModal() {
           selectedPersons.length > 0 ? (
             <View>
               <Text style={{ marginBottom: 5, marginTop: 15 }}>Personas</Text>
-              <View style={{ marginBottom: 5, marginTop: 5 }}>
+              <View style={{ marginBottom: 5, marginTop: 5, flexDirection: "row", columnGap: 5}}>
                 {selectedPersons.map((sp) => (
                   <Text
                     style={{
@@ -510,7 +511,6 @@ function CigarModal() {
                       color: "white",
                       paddingVertical: 5,
                       paddingHorizontal: 20,
-                      marginRight: "auto",
                       borderRadius: 15
                     }}
                   >
