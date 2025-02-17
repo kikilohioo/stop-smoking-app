@@ -1,5 +1,5 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
-import Svg, { Path, SvgProps } from "react-native-svg";
+import Svg, { ClipPath, Defs, Ellipse, G, Path, SvgProps } from "react-native-svg";
 
 type IconProp = {
   size?: number;
@@ -47,6 +47,42 @@ export const CigarIcon = (props : SvgProps) => {
   );
 };
 
+export const MordidaIcon = (props : SvgProps) => {
+  return (
+    <Svg
+      width={34}
+      height={34}
+      viewBox="0 0 208.37 93.305"
+      {...props}
+    >
+      <Defs>
+        <ClipPath id="a">
+          <Path
+            d="M208.55 171.072H-.123s33.122 1.472 52.996-30.546c19.874-32.019 4.048-62.933 4.048-62.933"
+          />
+        </ClipPath>
+      </Defs>
+      <Path
+        d="M56.786 77.778s42.446 93.47 152.312 93.47H.18Z"
+        clipPath="url(#a)"
+        transform="translate(-.18 -77.778)"
+      />
+    </Svg>
+  );
+};
+
 export const RightShortRow = (props: IconProp) => {
   return <AntDesign name="rightcircleo" size={24} color="white" {...props} />;
+}
+
+export const RightRow = (props: IconProp) => {
+  return <AntDesign name="arrowright" size={24} color="black" {...props} />;
+}
+
+export const PersonIcon = (props: IconProp) => {
+  return <AntDesign name="user" size={24} color="black" {...props} />;
+}
+
+export const LocationIcon = (props: IconProp) => {
+  return <AntDesign name="enviromento" size={24} color="black" {...props} />;
 }

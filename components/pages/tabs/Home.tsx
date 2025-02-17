@@ -1,19 +1,23 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Dimensions } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Dimensions, FlatList } from "react-native";
 import { useSQLiteContext } from "expo-sqlite";
 import { Screen } from "../../Screen";
-import { DBCigarType } from "../../Types";
+import { DBCigarPersonType, DBCigarType, DBPersonType } from "../../Types";
 import { LineChart } from "react-native-chart-kit";
 import { fluorescentCyan, marianBlue, teal } from "../../../assets/palette";
 import { Link, useFocusEffect } from "expo-router";
 import {
   ConductualIcon,
   EmotionalIcon,
+  LocationIcon,
+  PersonIcon,
   PhysiologicalIcon,
+  RightRow,
   RightShortRow,
   SocialIcon,
 } from "../../Icons";
 import CreateCigarButton from "../../common/CreateCigarButton";
+import { ActivityIndicator } from "react-native-paper";
 
 // const screenWidth = Dimensions.get("window").width;
 type LineChartData = {
@@ -21,10 +25,15 @@ type LineChartData = {
   color?: () => string;
 };
 
+type DBCigarWithPlace = DBCigarType & { name: string };
+
 export function HomePage() {
   const [lineChartData, setLineChartData] = useState<LineChartData[]>([]);
   const [actualWeekCountCigars, setActualWeekCountCigars] = useState<number>(0);
   const [lastWeekCountCigars, setLastWeekCountCigars] = useState<number>(0);
+  const [dataLoaded, setDataLoaded] = useState<boolean>(false);
+  const [cigarPersons, setCigarPersons] = useState<Record<string, number>[]>([]);
+  const [cigarPlaces, setCigarPlaces] = useState<Record<string, number>[]>([]);
   const database = useSQLiteContext();
 
   useFocusEffect(
@@ -34,9 +43,39 @@ export function HomePage() {
   );
 
   const loadData = async () => {
-    const cigars = await database.getAllAsync<DBCigarType>(
-      "SELECT * FROM cigars"
+    const cigars = await database.getAllAsync<DBCigarWithPlace>(
+      `SELECT *, p.name FROM cigars c
+        INNER JOIN places p on p.id = c.place_id
+      `
     );
+
+    
+    const personCigars = await database.getAllAsync<DBCigarPersonType>(
+      `SELECT p.name, cp.cigar_id, cp.person_id FROM cigar_persons cp
+      INNER JOIN persons p on cp.person_id = p.id
+      `
+    );
+
+    const personCigarsCounter = personCigars.reduce<Record<string, number>>((acc, item) => {
+      if (item.name) {
+        acc[item.name] = (acc[item.name] || 0) + 1;
+      }
+      return acc;
+    }, {});
+    
+    const personCigarsFormatted = Object.entries(personCigarsCounter).map(([name, count]) => ({ [name]: count }));
+    setCigarPersons(personCigarsFormatted);
+    
+    const placeCigarsCounter = cigars.reduce<Record<string, number>>((acc, item) => {
+      if (item.name) {
+        acc[item.name] = (acc[item.name] || 0) + 1;
+      }
+      return acc;
+    }, {});
+    
+    const placeCigarsFormatted = Object.entries(placeCigarsCounter).map(([name, count]) => ({ [name]: count }));
+    setCigarPlaces(placeCigarsFormatted);
+
 
     const actualWeekCigars = filterCurrentWeek(cigars);
     const lastWeekCigars = filterLastWeek(cigars);
@@ -45,7 +84,9 @@ export function HomePage() {
     setLastWeekCountCigars(lastWeekCigars.length);
 
     const data = processCigarData(actualWeekCigars);
+
     setLineChartData(data);
+    setDataLoaded(true);
   };
 
   const processCigarData = (cigars: DBCigarType[]): LineChartData[] => {
@@ -99,6 +140,7 @@ export function HomePage() {
       physiologicalData.data.push(physiologicalPer);
     });
 
+    // TODO: agregar status bar
     return [
       {
         ...socialData,
@@ -186,147 +228,235 @@ export function HomePage() {
 
   return (
     <Screen style={styles.screen}>
-      <ScrollView>
-        <View style={{ ...styles.section, backgroundColor: marianBlue(70) }}>
-          <View style={styles.chartCardHeader}>
-            <SocialIcon size={20} />
-            <EmotionalIcon size={20} />
-            <ConductualIcon size={20} />
-            <PhysiologicalIcon size={20} />
-            <Link asChild href="/reviews/spheres">
-              <Text style={styles.subtitle}>
-                Esferas <RightShortRow size={15} />
-              </Text>
-            </Link>
-          </View>
-          {
-            lineChartData.length > 0
-              ?
-              <LineChart
-                data={{
-                  labels: ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"],
-                  datasets: lineChartData
-                }}
-                width={Dimensions.get("window").width - 20} // from react-native
-                height={200}
-                // yAxisLabel="$"
-                yAxisSuffix="%"
-                yAxisInterval={6} // optional, defaults to 1
-                chartConfig={{
-                  backgroundColor: "white",
-                  backgroundGradientFrom: fluorescentCyan(80),
-                  backgroundGradientTo: marianBlue(70),
-                  decimalPlaces: 2, // optional, defaults to 2dp
-                  color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                  labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                  style: {
-                    borderRadius: 16
-                  },
-                  propsForDots: {
-                    r: "6",
-                  }
-                }}
-                bezier
-                style={{
-                  borderRadius: 16,
-                  paddingTop: 10,
-                }}
-              />
-              :
-              <Text>No hay datos para mostrar aun</Text>
-          }
-        </View>
-        <View
-          style={{
-            ...styles.section,
-            backgroundColor: "white",
-            marginTop: 10,
-            padding: 10,
-          }}
-        >
-          <Link asChild href="/review/count">
-            <Text
-              style={{ ...styles.subtitle, textAlign: "left", color: "black" }}
-            >
-              Cantidad de cigarros <RightShortRow size={15} color="black" />
-            </Text>
-          </Link>
-          <View
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              backgroundColor: "red",
-            }}
-          >
-            <View
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                backgroundColor: "green",
-                flex: 1,
-                justifyContent: "space-between",
-              }}
-            >
-              <Text
-                style={{
-                  backgroundColor: "skyblue",
-                  flex: 1,
-                  textAlign: "center",
-                }}
-              >
-                Semana pasada
-              </Text>
+      {
+        dataLoaded ?
+          (
+            <ScrollView>
+              {/* ESFERAS */}
+              {/* TODO: agregar status bar */}
+              <View style={{ ...styles.section, backgroundColor: marianBlue(20) }}>
+                <View style={styles.chartCardHeader}>
+                  <SocialIcon size={20} />
+                  <EmotionalIcon size={20} />
+                  <ConductualIcon size={20} />
+                  <PhysiologicalIcon size={20} />
+                  <Link asChild href="/reviews/spheres">
+                    <Text style={styles.subtitle}>
+                      Esferas <RightShortRow size={15} />
+                    </Text>
+                  </Link>
+                </View>
+                {
+                  lineChartData.map(item => item.data.length).reduce((acc, length) => acc + length, 0) > 0
+                    ?
+                    <LineChart
+                      data={{
+                        labels: ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"],
+                        datasets: lineChartData
+                      }}
+                      width={Dimensions.get("window").width - 20}
+                      height={200}
+                      yAxisSuffix="%"
+                      yAxisInterval={6}
+                      chartConfig={{
+                        backgroundColor: "white",
+                        backgroundGradientFrom: fluorescentCyan(50),
+                        backgroundGradientTo: marianBlue(20),
+                        decimalPlaces: 2,
+                        // TODO: agregar status bar
+                        color: (opacity = 1) => `rgba(200, 200, 200, ${opacity})`,
+                        // TODO: agregar status bar
+                        labelColor: (opacity = 1) => `rgba(100, 100, 100, ${opacity})`,
+                        style: {
+                          borderRadius: 16
+                        },
+                        propsForDots: {
+                          r: "6",
+                        }
+                      }}
+                      bezier
+                      style={{
+                        borderRadius: 16,
+                        paddingTop: 10,
+                      }}
+                    />
+                    :
+                    <Text>No hay datos para mostrar aun</Text>
+                }
+              </View>
+              {/* CANTIDADES */}
               <View
                 style={{
-                  backgroundColor: "grey",
-                  paddingHorizontal: 10,
-                  paddingVertical: 3,
-                  borderRadius: 5,
+                  ...styles.section,
+                  backgroundColor: lastWeekCountCigars == actualWeekCountCigars ? "white" : (lastWeekCountCigars > actualWeekCountCigars ? "#d8edd8" : "#edd8d8"),
+                  marginTop: 10,
+                  padding: 10,
                 }}
               >
-                <Text>{lastWeekCountCigars}</Text>
+                <Link asChild href="/review/count">
+                  <Text
+                    style={{ ...styles.subtitle, textAlign: "left", color: "black" }}
+                  >
+                    Cantidad de cigarros <RightShortRow size={15} color="black" />
+                  </Text>
+                </Link>
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    columnGap: 5
+                  }}
+                >
+                  <View
+                    style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: "#f2f0f0",
+                      flex: 1,
+                      justifyContent: "space-between",
+                      borderRadius: 5
+                    }}
+                  >
+                    <Text
+                      style={{
+                        // backgroundColor: "skyblue",
+                        flex: 1,
+                        textAlign: "center",
+                      }}
+                    >
+                      SEMANA PASADA
+                    </Text>
+                    <View
+                      style={{
+                        backgroundColor: "#d9d9d9",
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
+                        borderRadius: 5,
+                        elevation: 2
+                      }}
+                    >
+                      <Text style={{ fontWeight: "bold" }}>{lastWeekCountCigars}</Text>
+                    </View>
+                  </View>
+                  <View
+                    style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: "#f2f0f0",
+                      flex: 1,
+                      justifyContent: "space-between",
+                      borderRadius: 5
+                    }}
+                  >
+                    <View
+                      style={{
+                        backgroundColor: "#d9d9d9",
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
+                        borderRadius: 5,
+                        elevation: 2
+                      }}
+                    >
+                      <Text style={{ fontWeight: "bold" }}>{actualWeekCountCigars}</Text>
+                    </View>
+                    <Text
+                      style={{
+                        // backgroundColor: "skyblue",
+                        flex: 1,
+                        textAlign: "center",
+                      }}
+                    >
+                      ESTA SEMANA
+                    </Text>
+                  </View>
+                </View>
+                <Text style={{ textAlign: "center", paddingTop: 7, fontWeight: "bold", color: lastWeekCountCigars == actualWeekCountCigars ? "black" : (lastWeekCountCigars > actualWeekCountCigars ? "#32CD32" : "#ff0000") }}>
+                  Esta semana has fumado {Math.abs(lastWeekCountCigars - actualWeekCountCigars)}{" "}
+                  cigarros {lastWeekCountCigars >= actualWeekCountCigars ? "menos" : "más"}
+                </Text>
               </View>
-            </View>
-            <View
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                backgroundColor: "blue",
-                flex: 1,
-                justifyContent: "space-between",
-              }}
-            >
-              <View
-                style={{
-                  backgroundColor: "grey",
-                  paddingHorizontal: 10,
-                  paddingVertical: 3,
-                  borderRadius: 5,
-                }}
-              >
-                <Text>{actualWeekCountCigars}</Text>
+              {/* PERSONAS Y LUGARES */}
+              <View style={{ display: "flex", flexDirection: "row", width: "100%", columnGap: 10 }}>
+                <View
+                  style={{
+                    ...styles.section,
+                    backgroundColor: "white",
+                    marginTop: 10,
+                    padding: 15,
+                    marginRight: 0,
+                    flex: 1,
+                    height: 256,
+                    maxHeight: 256,
+                  }}
+                >
+                  <Link asChild href="/review/count">
+                    <Text
+                      style={{ ...styles.subtitle, textAlign: "center", color: "black", marginBottom: 10 }}
+                    >
+                      <PersonIcon size={20} /> Personas <RightShortRow size={15} color="black" />
+                    </Text>
+                  </Link>
+                  <ScrollView>
+                    {cigarPersons.map((cp, index) => {
+                      // Extraer la clave y el valor del objeto
+                      const [[name, count]] = Object.entries(cp);
+
+                      return (
+                        <View key={index} style={{ paddingVertical: 3 }}>
+                          <Text style={{ textAlign: "center" }}>
+                            <RightRow size={12} /> {name}: {count} cigarros
+                          </Text>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+                <View
+                  style={{
+                    ...styles.section,
+                    backgroundColor: "white",
+                    marginTop: 10,
+                    padding: 15,
+                    marginLeft: 0,
+                    flex: 1,
+                    height: 256,
+                    maxHeight: 256,
+                  }}
+                >
+                  <Link asChild href="/review/count">
+                    <Text
+                      style={{ ...styles.subtitle, textAlign: "center", color: "black", marginBottom: 10 }}
+                    >
+                      <LocationIcon size={20} /> Lugares <RightShortRow size={15} color="black" />
+                    </Text>
+                  </Link>
+                  <ScrollView>
+                    {cigarPlaces.map((cp, index) => {
+                      // Extraer la clave y el valor del objeto
+                      const [[name, count]] = Object.entries(cp);
+
+                      return (
+                        <View key={index} style={{ paddingVertical: 3 }}>
+                          <Text style={{ textAlign: "center" }}>
+                            <RightRow size={12} /> {name}: {count} cigarros
+                          </Text>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
               </View>
-              <Text
-                style={{
-                  backgroundColor: "skyblue",
-                  flex: 1,
-                  textAlign: "center",
-                }}
-              >
-                Esta semana
-              </Text>
-            </View>
+            </ScrollView>
+          )
+          :
+          <View style={{ flex: 1, paddingTop: "80%" }}>
+            <ActivityIndicator />
           </View>
-          <Text>
-            Esta semana has fumado {lastWeekCountCigars - actualWeekCountCigars}{" "}
-            cigarros menos
-          </Text>
-        </View>
-      </ScrollView>
+      }
       <CreateCigarButton />
     </Screen>
   );

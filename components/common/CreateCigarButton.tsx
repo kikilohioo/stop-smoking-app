@@ -1,42 +1,92 @@
-import { StyleSheet, TouchableOpacity } from "react-native";
-import { CigarIcon } from "../Icons";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { CigarIcon, MordidaIcon } from "../Icons";
 import { dutchWhite, fireBrick } from "../../assets/palette";
 import { router } from "expo-router";
 
 export default function CreateCigarButton() {
   return (
-    <TouchableOpacity
-      style={styles.floatingButton}
-      onPress={() => router.push("/modal")}
-    >
-      <CigarIcon
-        style={styles.cigarIcon}
-        height={25}
-        width={25}
-        fill={dutchWhite(10)}
+    <View style={styles.floatingSurface}>
+      <MordidaIcon
+        width={69}
+        height={69}
+        fill={fireBrick(40)}
+        style={styles.mordidaLeft}
       />
-    </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.floatingButton}
+      onPress={() => router.push("/modal")}
+      >
+        <CigarIcon
+          style={styles.cigarIcon}
+          height={20}
+          width={20}
+          fill={dutchWhite(10)}
+        />
+      </TouchableOpacity>
+      <MordidaIcon
+        width={69}
+        height={69}
+        fill={fireBrick(40)}
+        style={styles.mordidaRight}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-    cigarIcon: {
-      transform: [{translateX: -3},{translateY: -2},{rotate: "-45deg"}]
+  cigarIcon: {
+    transform: [{ translateX: -2 }, { translateY: -1 }, { rotate: "-45deg" }]
+  },
+  floatingSurface: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    alignContent: "center",
+    width: "100%",
+    height: 10,
+    backgroundColor: fireBrick(40),
+    position: "relative", // Asegura que los hijos se posicionen correctamente
+    overflow: "visible",
+    zIndex: 1
+  },
+  floatingButton: {
+    backgroundColor: fireBrick(40), // Replace with your primary color
+    width: 45,
+    height: 45,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+    transform: [{
+      translateY: -22
+    }],
+    elevation: 3,
+    zIndex: 2
+  },
+  mordidaLeft: {
+    marginLeft: "auto",
+    width: 50,
+    color: fireBrick(40),
+    transform: [{
+      translateY: -19
     },
-    floatingButton: {
-      backgroundColor: fireBrick(40), // Replace with your primary color
-      width: 60,
-      height: 60,
-      borderRadius: 30,
-      justifyContent: "center",
-      alignItems: "center",
-      position: "absolute",
-      bottom: 20,
-      right: 20,
-      elevation: 5, // For Android shadow
-      shadowColor: "#000", // For iOS shadow
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
+    {
+      translateX: 22
     },
-  });
+    {
+      scaleX: -1
+    }],
+  },
+  mordidaRight: {
+    marginRight: "auto",
+    width: 50,
+    color: fireBrick(40),
+    transform: [{
+      translateY: -19
+    }, {
+      translateX: -22
+    }],
+    position: "relative",
+    zIndex: 1
+  },
+});

@@ -8,7 +8,6 @@ export type DBCigarType = {
   physiological: number;
   trigger_id: number | undefined;
   place_id: number;
-  person_id: number | undefined;
   date_time: string;
 };
 
@@ -17,6 +16,7 @@ export type DBCigarPersonType = {
   cigar_id: number;
   person_id: number;
   name?: string;
+  date_time: string;
 };
 
 export type DBMotiveType = {

@@ -3,12 +3,11 @@ import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
   SafeAreaView,
   ScrollView,
 } from "react-native";
-import { Button, IconButton } from "react-native-paper";
+import { Button } from "react-native-paper";
 import { fireBrick, marianBlue } from "../../assets/palette";
 import { useSQLiteContext } from "expo-sqlite";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -16,7 +15,6 @@ import {
   CigarFormData,
   DBCigarPersonType,
   DBCigarType,
-  DBMotiveType,
   MotiveFormData,
   Spheres,
 } from "../Types";
@@ -287,9 +285,10 @@ function CigarModal() {
             setSelectedTrigger(
               result.trigger_id ? result.trigger_id.toString() : ""
             );
+
             setSelectedPersons(
               cigarPersonsResult !== null
-                ? cigarPersonsResult.map((cp) => cp.name)
+                ? cigarPersonsResult.map((cp) => cp.person_id.toString())
                 : []
             );
             setSelectedPlace(result.place_id.toString());
@@ -503,42 +502,38 @@ function CigarModal() {
         {errors.trigger_id && (
           <Text style={styles.errorText}>{errors.trigger_id.message}</Text>
         )}
-        <Controller
-          control={control}
-          name="persons"
-          render={({ field: { onChange } }) => {
-            let initialPersons: number[] = getValues().persons ?? [];
-            let auxSelectedPersons: { key: any; value: any }[] =
-              initialPersons.length > 0
-                ? persons.map((p) => {
-                    if (initialPersons.includes(p.key)) {
-                      return {
-                        key: p.key as any,
-                        value: p.value as any,
-                      };
-                    }
-                  }).filter(p => p != undefined)
-                : [];
-
-            return (
-              <>
-                <Text style={{ marginBottom: 5, marginTop: 15 }}>Persona</Text>
-                <MultipleSelectList
-                  defaultOption={{key: "1" as any, value: "Pau" as any}}
-                  placeholder="Seleccione una persona"
-                  onSelect={() => {
-                    handlePersonChange(selectedPersons, onChange);
-                  }}
-                  setSelected={(values: string[]) => {
-                    setSelectedPersons(values);
-                  }}
-                  data={persons}
-                  save="value"
-                />
-              </>
-            );
-          }}
-        />
+        {
+          cigar_id ?
+            (
+              <View>
+                <Text style={{ marginBottom: 5, marginTop: 15 }}>Personas</Text>
+                <Text style={{ marginBottom: 5, marginTop: 5 }}></Text>
+              </View>
+            )
+            :
+            (
+              <Controller
+                control={control}
+                name="persons"
+                render={({ field: { onChange } }) => (
+                  <>
+                    <Text style={{ marginBottom: 5, marginTop: 15 }}>Personas</Text>
+                    <MultipleSelectList
+                      placeholder="Seleccione una persona"
+                      onSelect={() => {
+                        handlePersonChange(selectedPersons, onChange);
+                      }}
+                      setSelected={(values: string[]) => {
+                        setSelectedPersons(values);
+                      }}
+                      data={persons}
+                      save="value"
+                    />
+                  </>
+                )}
+              />
+            )
+        }
         {errors.persons && (
           <Text style={styles.errorText}>{errors.persons.message}</Text>
         )}
