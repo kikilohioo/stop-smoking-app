@@ -38,35 +38,38 @@ const createDbIfNeeded = async (db: SQLiteDatabase) => {
       sql += "\n);";
 
       // Ejecutar la sentencia SQL en la base de datos
-      const response = await db.execAsync(sql);
+      await db.execAsync(sql);
 
+      console.log("app mode: ", process.env.EXPO_PUBLIC_ENV);
       // inserts de los seeders de esta tabla
-      // Buscar si hay seeders para esta tabla
-      const seeder = dataToInsert.find((item) => item.table === table);
-      if (!seeder) return;
+      if (process.env.EXPO_PUBLIC_ENV === "dev") {
+        // Buscar si hay seeders para esta tabla
+        const seeder = dataToInsert.find((item) => item.table === table);
+        if (!seeder) return;
 
-      const { data } = seeder;
-      if (data.length === 0) return;
+        const { data } = seeder;
+        if (data.length === 0) return;
 
-      const keys = Object.keys(data[0]).join(", ");
-      const values = data
-        .map(
-          (row: Record<string, unknown>) =>
-            `(${Object.values(row)
-              .map((value) =>
-                value === undefined
-                  ? "NULL"
-                  : typeof value === "string"
-                    ? `'${value.replace(/'/g, "''")}'`
-                    : value
-              )
-              .join(", ")})`
-        )
-        .join(", ");
+        const keys = Object.keys(data[0]).join(", ");
+        const values = data
+          .map(
+            (row: Record<string, unknown>) =>
+              `(${Object.values(row)
+                .map((value) =>
+                  value === undefined
+                    ? "NULL"
+                    : typeof value === "string"
+                      ? `'${value.replace(/'/g, "''")}'`
+                      : value
+                )
+                .join(", ")})`
+          )
+          .join(", ");
 
-      const insertSql = `INSERT INTO ${table} (${keys}) VALUES ${values};`;
+        const insertSql = `INSERT INTO ${table} (${keys}) VALUES ${values};`;
 
-      await db.execAsync(insertSql);
+        await db.execAsync(insertSql);
+      }
     });
     console.log("Database created and data inserted");
   } catch (error) {

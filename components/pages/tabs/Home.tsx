@@ -282,7 +282,9 @@ export function HomePage() {
         <ScrollView>
           {/* ESFERAS */}
           {/* TODO: agregar status bar */}
-          <View style={{ ...styles.section, backgroundColor: fluorescentCyan(55) }}>
+          <View
+            style={{ ...styles.section, backgroundColor: fluorescentCyan(55) }}
+          >
             <View style={styles.chartCardHeader}>
               <SocialIcon size={20} />
               <EmotionalIcon size={20} />
@@ -330,7 +332,9 @@ export function HomePage() {
                 }}
               />
             ) : (
-              <Text>No hay datos para mostrar aun</Text>
+              <View style={{ alignItems: "center", alignContent: "center", paddingVertical: 40 }}>
+                <Text>No hay datos para mostrar aun</Text>
+              </View>
             )}
           </View>
           {/* CANTIDADES */}

@@ -122,7 +122,6 @@ function MotiveModal() {
                 physiological: result.physiological,
               },
             });
-            console.log("db result: ", result);
             setSpheres({
               social: result.social,
               emotional: result.emotional,
@@ -163,13 +162,13 @@ function MotiveModal() {
 
         <Divider />
         <Text style={styles.title}>Esferas</Text>
-        {(motive_id == undefined || Object.values(spheres).reduce((acc, curr) => acc + curr, 0) > 0) && (
+        {(motive_id == undefined ||
+          Object.values(spheres).reduce((acc, curr) => acc + curr, 0) > 0) && (
           <SliderSelectSpheres
             spheres={spheres}
             control={control}
             handleSpheresChange={(value, sphere, onChange) => {
               const formSpheres = getValues().spheres;
-              // console.log("actual form spheres: ", formSpheres, sphere, value);
               if (formSpheres !== undefined && formSpheres[sphere] == value) {
                 return;
               }

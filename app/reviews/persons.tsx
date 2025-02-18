@@ -1,5 +1,5 @@
 import { InProgress } from "../../components/pages/InProgress";
 
-export default function Records() {
+export default function Persons() {
 	return <InProgress />;
 }

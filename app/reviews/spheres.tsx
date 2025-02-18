@@ -1,5 +1,5 @@
-import { Text } from "react-native";
+import { InProgress } from "../../components/pages/InProgress";
 
-export default function Index() {
-	return <Text>aca la idea es hacer una grafica del porcentaje de cada esfera en el tiempo con la posibilidad de filtrar entre fechas</Text>;
+export default function Spheres() {
+	return <InProgress />;
 }

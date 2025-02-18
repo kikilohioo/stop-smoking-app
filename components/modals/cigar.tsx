@@ -1,6 +1,13 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  Alert,
+} from "react-native";
 import { Button } from "react-native-paper";
 import { fireBrick, marianBlue } from "../../assets/palette";
 import { useSQLiteContext } from "expo-sqlite";
@@ -181,7 +188,8 @@ function CigarModal() {
           // Suponiendo que 'persons' es un array de strings y la tabla tiene una columna 'name'
           const values = persons
             .map(
-              (value) => `(${cigarId}, ${value.toString().replace(/'/g, "''")}, ${data.date_time ?? "NOW()"})`
+              (value) =>
+                `(${cigarId}, ${value.toString().replace(/'/g, "''")}, ${data.date_time ?? "NOW()"})`
             )
             .join(", ");
 
@@ -214,7 +222,6 @@ function CigarModal() {
         let newCigarId = result.lastInsertRowId;
 
         const { persons } = data;
-        console.log(data.date_time);
 
         if (persons && persons.length > 0) {
           const values = persons
@@ -313,6 +320,16 @@ function CigarModal() {
     const places = await database.getAllAsync<AuxMotive>(
       "SELECT id as key, name as value FROM places"
     );
+
+    if (motives.length === 0 || places.length === 0) {
+      Alert.alert(
+        "Error de configuración",
+        `Faltan crear los siguientes datos:${motives.length === 0 ? "\n- Motivos por los que fumo" : ""}${places.length === 0 ? "\n- Lugares donde fumo" : ""}`,
+        [{ text: "Aceptar"}]
+      );
+      router.back();
+    }
+    
     setMotives(motives);
     setTriggers(triggers);
     setPersons(persons);
@@ -419,6 +436,7 @@ function CigarModal() {
             <>
               <Text style={{ marginBottom: 5 }}>Motivo</Text>
               <SelectList
+                notFoundText="Aun no hay motivos creados"
                 defaultOption={motives.find(
                   (motive) => motive.key.toString() == selectedMotive
                 )}
@@ -480,6 +498,7 @@ function CigarModal() {
                 Desencadenante
               </Text>
               <SelectList
+                notFoundText="Aun no hay desencadenantes creados"
                 defaultOption={triggers.find(
                   (trigger) => trigger.key.toString() == selectedTrigger
                 )}
@@ -503,7 +522,14 @@ function CigarModal() {
           selectedPersons.length > 0 ? (
             <View>
               <Text style={{ marginBottom: 5, marginTop: 15 }}>Personas</Text>
-              <View style={{ marginBottom: 5, marginTop: 5, flexDirection: "row", columnGap: 5}}>
+              <View
+                style={{
+                  marginBottom: 5,
+                  marginTop: 5,
+                  flexDirection: "row",
+                  columnGap: 5,
+                }}
+              >
                 {selectedPersons.map((sp) => (
                   <Text
                     style={{
@@ -511,7 +537,7 @@ function CigarModal() {
                       color: "white",
                       paddingVertical: 5,
                       paddingHorizontal: 20,
-                      borderRadius: 15
+                      borderRadius: 15,
                     }}
                   >
                     {sp}
@@ -535,6 +561,7 @@ function CigarModal() {
               <>
                 <Text style={{ marginBottom: 5, marginTop: 15 }}>Personas</Text>
                 <MultipleSelectList
+                  notFoundText="Aun no hay personas creadas"
                   placeholder="Seleccione una persona"
                   onSelect={() => {
                     handlePersonChange(selectedPersons, onChange);
@@ -560,6 +587,7 @@ function CigarModal() {
             <>
               <Text style={{ marginBottom: 5, marginTop: 15 }}>Lugar</Text>
               <SelectList
+                notFoundText="Aun no hay lugares creados"
                 defaultOption={places.find(
                   (place) => place.key.toString() == selectedPlace
                 )}
