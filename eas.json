@@ -20,7 +20,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_ENV": "prod"
+        "EXPO_PUBLIC_ENV": "prod",
+        "EXPO_PUBLIC_DB_NAME": "stop-smoking-app.db"
       }
     }
   },
