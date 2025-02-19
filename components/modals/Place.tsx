@@ -30,7 +30,7 @@ function PlaceModal() {
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
       if (place_id) {
-        await database.runAsync(`UPDATE places SET name = ?;`, [
+        await database.runAsync(`UPDATE places SET name = ? where id = ?;`, [
           data.name,
           placeId,
         ]);

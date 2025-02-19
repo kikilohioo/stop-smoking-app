@@ -28,9 +28,10 @@ function TriggerModal() {
   const [submittedData, setSubmittedData] = useState<FormData | null>(null);
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
+    console.log(triggerId)
     try {
       if (trigger_id) {
-        await database.runAsync(`UPDATE triggers SET name = ?;`, [
+        await database.runAsync(`UPDATE triggers SET name = ? where id = ?;`, [
           data.name,
           triggerId,
         ]);

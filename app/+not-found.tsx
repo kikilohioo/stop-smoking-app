@@ -1,10 +1,7 @@
 import { View } from "react-native";
 import { Text } from "react-native-paper";
+import { InProgress } from "../components/pages/InProgress";
 
 export default function NotFound() {
-  return (
-    <View style={{ alignItems: "center", alignContent: "center", paddingVertical: 40 }}>
-      <Text style={{fontSize: 20, textAlign: "center", lineHeight: 30}}>Estamos trabajando en esta nueva funcionalidad</Text>
-    </View>
-  );
+  return <InProgress />;
 }

@@ -14,7 +14,7 @@ export default function CreateCigarButton() {
       />
       <TouchableOpacity
         style={styles.floatingButton}
-      onPress={() => router.push("/modal")}
+        onPress={() => router.push("/modal")}
       >
         <CigarIcon
           style={styles.cigarIcon}
