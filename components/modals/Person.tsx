@@ -30,7 +30,7 @@ function PersonModal() {
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
       if (person_id) {
-        await database.runAsync(`UPDATE persons SET name = ?;`, [
+        await database.runAsync(`UPDATE persons SET name = ? where id = ?;`, [
           data.name,
           personId,
         ]);
